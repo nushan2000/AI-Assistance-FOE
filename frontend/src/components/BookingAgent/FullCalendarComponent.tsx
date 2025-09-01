@@ -71,8 +71,6 @@ const [formData, setFormData] = useState({
   });
 
   useEffect(() => {
-    console.log("room");
-    
     load(roomName);
     fetch_all_halls();
   }, [roomName,refreshKey, isOpen]);
@@ -83,7 +81,6 @@ const [formData, setFormData] = useState({
     try {
       const response = await axios.get(`http://127.0.0.1:8000/fetch_bookings?room_name=${selectedRoom}`);
       const bookings = response.data;
- console.log(bookings);
 
       const events = bookings.map((booking:any, index:number) => ({
         id: booking.id || index.toString(),
@@ -120,7 +117,6 @@ const createBooking = async () => {
 const [lastClicked, setLastClicked] = useState<string | null>(null);
 
 const handleDateClick = (arg: any) => {
-  console.log("clicked", arg);
 
   if (!onCellClick) return;
 
@@ -129,8 +125,6 @@ const handleDateClick = (arg: any) => {
     onCellClick(null);
     setLastClicked(null); // reset
   } else {
-    console.log("publicId", arg.event?.roomName);
-
     onCellClick({
       id: arg.event?.id,
       startTime: arg.event?.start,

@@ -87,7 +87,6 @@ const [email, setEmail] = useState<string | null>(null);
     const getEmail = async () => {
       const userEmail = await fetchUserEmailFromProfile();
       setEmail(userEmail);
-       console.log(userEmail);
     };
     getEmail();
    
@@ -165,13 +164,6 @@ const [email, setEmail] = useState<string | null>(null);
       const startTimeStr = startDate.toTimeString().slice(0, 5);
       const endTimeStr = endDate.toTimeString().slice(0, 5);
 
-      console.log("Booking details:", {
-        room_name,
-        date,
-        startTimeStr,
-        endTimeStr,
-      });
-
       const bookingMessage: Message = {
         role: "user",
         content: `Book ${room_name} on ${date} from ${startTimeStr} to ${endTimeStr}`,
@@ -182,8 +174,6 @@ const [email, setEmail] = useState<string | null>(null);
         question: `Book ${room_name} on ${date} from ${startTimeStr} to ${endTimeStr}`,
         session_id: sessionId,
       });
-
-      console.log("Booking API Response:", response.data);
 
       let responseContent = "";
 
@@ -219,7 +209,6 @@ const [email, setEmail] = useState<string | null>(null);
       let errorMessage = "Failed to book the room. Please try again.";
 
       if (axios.isAxiosError(err) && err.response) {
-        console.log("Error response data:", err.response.data);
 
         if (err.response.data?.detail) {
           if (typeof err.response.data.detail === "string") {
@@ -406,10 +395,6 @@ const [email, setEmail] = useState<string | null>(null);
                     className={`book-button ${theme ? "dark" : "light"}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log(
-                        "Book button clicked for:",
-                        rec.suggestion?.room_name
-                      );
                       handleBookRecommendation(
                         rec.suggestion?.room_name || "Unknown Room",
                         rec
@@ -455,8 +440,6 @@ const [email, setEmail] = useState<string | null>(null);
         question: inputValue,
         session_id: sessionId,
       });
-
-      console.log("Full API Response:", response.data);
 
       let responseContent = "";
       let recommendations: Recommendation[] = [];
@@ -529,7 +512,6 @@ const [email, setEmail] = useState<string | null>(null);
       console.error("API Error:", err);
 
       if (axios.isAxiosError(err) && err.response) {
-        console.log("Error response data:", err.response.data);
 
         if (
           err.response.data?.detail &&
@@ -592,15 +574,11 @@ const [email, setEmail] = useState<string | null>(null);
     }));
   };
   const handleUpdate = () => {
-    console.log("✅ Creating booking:", formData);
-    // Here you can call your API with formData
-    // setIsOpen(false);
     updateBooking(calendarCellInfo.id, formData);
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    console.log("info", calendarCellInfo);
     
   }, [messages]);
 
@@ -612,11 +590,9 @@ const [email, setEmail] = useState<string | null>(null);
         `http://127.0.0.1:8000/booking/add`,
         formData
       );
-      console.log("✅ Booking created:", response.data);
 
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
-      console.error("❌ Error creating booking:", error);
     }
   };
 
@@ -630,11 +606,9 @@ const [email, setEmail] = useState<string | null>(null);
           data: { booking_id: bookingId },
         }
       );
-      console.log("✅ Booking deleted:", response.data);
 handleChatUpdate();
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
-      console.error("❌ Error deleting booking:", error);
     }
   };
 
@@ -666,8 +640,6 @@ handleChatUpdate();
 
 
   const fetchBookingById = async (bookingId: number) => {
-    console.log("calenderInfo",calendarCellInfo);
-    
     const apiUrl = process.env.REACT_APP_API_URL;
 
     try {
@@ -677,7 +649,6 @@ handleChatUpdate();
           params: { booking_id: calendarCellInfo.id },
         }
       );
-      console.log("✅ Booking fetched:", response.data);
       setFormData({
         room_name: response.data.room_name,
         name:response.data.name,
