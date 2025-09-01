@@ -20,9 +20,10 @@ import {
   
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { en } from '@fullcalendar/core/internal-common';
+import { A, en } from '@fullcalendar/core/internal-common';
 import { fetchUserEmailFromProfile } from '../../services/api';
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // const roomOptions = ['LT1', 'LT2', 'Lab1', 'Lab2']; // Add as needed
 
@@ -42,15 +43,20 @@ const [moduleCode, setModuleCode] = useState<string | null>(null);
 
   useEffect(() => {
   const getEmail = async () => {
-    const userEmail = await fetchUserEmailFromProfile();
-    setEmail(userEmail);
+    try {
+        const userEmail = await fetchUserEmailFromProfile();
+        setEmail(userEmail);
 
-    if (userEmail) {
-      fetch_moduleCodes(userEmail);
-      console.log(userEmail);
-    } else {
-      console.log("No email found");
-    }
+        if (userEmail) {
+          fetch_moduleCodes(userEmail);
+          console.log(userEmail);
+        } else {
+          toast.warning("⚠️ No email found for user");
+        }
+      } catch (err) {
+        toast.error("❌ Failed to fetch user email");
+        console.error(err);
+      }
   };
   getEmail();
 }, []);
@@ -90,6 +96,7 @@ const [formData, setFormData] = useState({
 
       setEventData(events);
     } catch (error) {
+      toast.error("❌ Failed to load bookings");
       console.error("❌ Error fetching bookings:", error);
     }
   };
@@ -99,10 +106,12 @@ const createBooking = async () => {
 
   try {
     const response = await axios.post(`http://127.0.0.1:8000/booking/add`, formData);
+    toast.success("✅ Booking created successfully!");
     console.log("✅ Booking created:", response.data);
 
     // Optionally, refresh the calendar or show a success message
-  } catch (error) {
+  } catch (error:any) {
+    toast.error(`❌ Failed to create booking: ${error.response?.data?.message || error.message}`);
     console.error("❌ Error creating booking:", error);
   }
 };
@@ -141,10 +150,12 @@ const handleChange = (field: string, value: string) => {
   };
 
 const handleCreate = () => {
-    console.log("✅ Creating booking:", formData);
-    // Here you can call your API with formData
-    setIsOpen(false);
+    if (!formData.name || !formData.room_name || !formData.date || !formData.start_time || !formData.end_time) {
+      toast.warning("⚠️ Please fill in all fields before creating a booking");
+      return;
+    }
     createBooking();
+    setIsOpen(false);
   };
 const fetch_moduleCodes = async (email: string) => {
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -153,7 +164,8 @@ const fetch_moduleCodes = async (email: string) => {
     const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_moduleCodes_by_user_email?email=${email}`);
     setModuleOptions(response.data);
     return response.data;
-  } catch (error) {
+  } catch (error:any) {
+    toast.error("❌ Failed to fetch module codes");
     console.error("❌ Error fetching module codes:", error);
     return [];
   }
@@ -166,7 +178,8 @@ const fetch_all_halls = async () => {
     const response = await axios.get(`http://127.0.0.1:8000/booking/all_halls`);
     setRoomOptions(response.data);
     return response.data;
-  } catch (error) {
+  } catch (error:any) {
+    toast.error("❌ Failed to fetch halls");
     console.error("❌ Error fetching all halls:", error);
     return [];
   }
@@ -180,6 +193,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
     setSelectedRoomOptions(response.data);
     return response.data;
   } catch (error) {
+    toast.error("❌ Failed to fetch halls by module code");
     console.error("❌ Error fetching halls:", error);
     return [];
   }
@@ -325,6 +339,7 @@ const handleOpenDialog = (booking: any) => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </Box>
 
   );
