@@ -18,6 +18,8 @@ import {
   TextField,
 } from "@mui/material";
 import { fetchUserEmailFromProfile } from "../../services/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Message {
   role: "user" | "assistant";
@@ -627,9 +629,12 @@ handleChatUpdate();
         date: formattedDate, // 👈 send normalized date
       }
     );
-
+    toast.success("✅ Booking updated successfully!");
+    console.log("✅ Booking updated:", response.data);
     handleChatUpdate();
-  } catch (error) {
+  } catch (error:any) {
+    toast.error(`❌ Failed to update booking: ${error.response?.data?.message || error.message}`);
+    console.error("❌ Error updating booking:", error);
   }
 };
 
@@ -657,6 +662,8 @@ handleChatUpdate();
     fetch_halls_by_moduleCode(response.data.name);
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
+      toast.error("❌ Failed to fetch booking details");
+      console.error("❌ Error fetching booking:", error);
     }
   };
 const fetch_moduleCodes_by_user_email = async (email: string) => {
@@ -667,6 +674,7 @@ const fetch_moduleCodes_by_user_email = async (email: string) => {
     setModuleOptions(response.data);
     return response.data;
   } catch (error) {
+    toast.error("❌ Failed to fetch module codes");
     console.error("❌ Error fetching module codes:", error);
     return [];
   }
@@ -680,6 +688,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
     setSelectedRoomOptions(response.data);
     return response.data;
   } catch (error) {
+    toast.error("❌ Failed to fetch halls");
     console.error("❌ Error fetching halls:", error);
     return [];
   }
@@ -696,6 +705,7 @@ useEffect(() => {
     <div
       style={{ display: "flex", gap: "2rem", width: "100%", height: "100vh" }}
     >
+       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div
         style={{
           flex: 1,

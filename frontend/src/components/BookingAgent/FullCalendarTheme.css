@@ -79,10 +79,16 @@
 .dark-theme .fc-event {
   background: #5A3232;
   color: #fff;
-  border: none;
+  border: none !important;
   border-radius: 6px;
 }
 .room-select-row{
   margin-bottom: 1rem;
   border-radius: 10px;
+}
+.dark-theme .fc-event,
+.dark-theme .fc-timegrid-event,
+.dark-theme .fc-daygrid-event {
+  border: none !important;
+  box-shadow: none !important; /* sometimes events have shadow that looks like border */
 }
