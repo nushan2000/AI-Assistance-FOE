@@ -5,6 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
 import { EventInput } from '@fullcalendar/core';
+import { useNotification } from '../../context/NotificationContext';
 import {
   FormControl,
   InputLabel,
@@ -24,6 +25,7 @@ import { A, en } from '@fullcalendar/core/internal-common';
 import { fetchUserEmailFromProfile } from '../../services/api';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import RightDrawer from './RightDrawer';
 
 // const roomOptions = ['LT1', 'LT2', 'Lab1', 'Lab2']; // Add as needed
 
@@ -40,6 +42,7 @@ const [moduleOptions, setModuleOptions] = useState<string[]>([]);
 const [roomOptions, setRoomOptions] = useState<string[]>([]);
 const [selectedRoomOptions, setSelectedRoomOptions] = useState<string[]>([]);
 const [moduleCode, setModuleCode] = useState<string | null>(null);
+ const { notify } = useNotification();
 
   useEffect(() => {
   const getEmail = async () => {
@@ -51,10 +54,10 @@ const [moduleCode, setModuleCode] = useState<string | null>(null);
           fetch_moduleCodes(userEmail);
           console.log(userEmail);
         } else {
-          toast.warning("⚠️ No email found for user");
-        }
-      } catch (err) {
-        toast.error("❌ Failed to fetch user email");
+          notify('warning', "⚠️ No email found for user");
+        }   
+      } catch (err:any) {
+        notify('error', "❌ Failed to fetch user email",err.message);
         console.error(err);
       }
   };
@@ -103,12 +106,12 @@ const createBooking = async () => {
 
   try {
     const response = await axios.post(`http://127.0.0.1:8000/booking/add`, formData);
-    toast.success("✅ Booking created successfully!");
+    notify('success', "✅ Booking created successfully!");
     console.log("✅ Booking created:", response.data);
 
     // Optionally, refresh the calendar or show a success message
   } catch (error:any) {
-    toast.error(`❌ Failed to create booking: ${error.response?.data?.message || error.message}`);
+    notify('error', `❌ Failed to create booking: ${error.response?.data?.message || error.message}`);
     console.error("❌ Error creating booking:", error);
   }
 };
@@ -145,7 +148,7 @@ const handleChange = (field: string, value: string) => {
 
 const handleCreate = () => {
     if (!formData.name || !formData.room_name || !formData.date || !formData.start_time || !formData.end_time) {
-      toast.warning("⚠️ Please fill in all fields before creating a booking");
+      notify('warning', "⚠️ Please fill in all fields before creating a booking");
       return;
     }
     createBooking();
@@ -226,6 +229,7 @@ const handleOpenDialog = (booking: any) => {
           
         </FormControl>
         <Button onClick={() => setIsOpen(true)} style={{ minWidth: 120, maxWidth: 160, marginBottom: 0, backgroundColor: "#FFFFFF" }}>Create</Button>
+        <RightDrawer />
       </div>
 
       <div style={{ position: "relative" }}>
