@@ -107,3 +107,20 @@ class MRBSUser(Base):
 
     # Add this:
     modules = relationship("MRBSModule", back_populates="lecturer", cascade="all, delete-orphan")
+
+class MRBSSwapRequest(Base):
+    __tablename__ = "swap_requests"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    requested_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    requested_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False)
+    offered_booking_id = Column(Integer, ForeignKey("mrbs_entry.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
+    status = Column(String(20), nullable=False, default="pending")  # 'pending', 'approved', 'rejected'
+    timestamp = Column("created_at", TIMESTAMP, nullable=False, server_default=func.now())
+    offered_by = Column(Integer, ForeignKey("mrbs_users.id", onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
+
+    # Relationships
+    requester = relationship("MRBSUser", foreign_keys=[requested_by])
+    offerer = relationship("MRBSUser", foreign_keys=[offered_by])
+    requested_booking = relationship("MRBSEntry", foreign_keys=[requested_booking_id])
+    offered_booking = relationship("MRBSEntry", foreign_keys=[offered_booking_id])
