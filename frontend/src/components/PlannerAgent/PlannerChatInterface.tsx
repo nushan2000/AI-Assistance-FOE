@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import ChatUI from "../ChatUIComponent/ChatUI";
 import "../BookingAgent/BookingChatInterface.css";
+import Home from "./Home";
 
 const semesters = ["Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6", "Semester 7", "Semester 8"];
 const departments = ["CSE", "ECE", "EEE", "MECH", "CIVIL", "IT"];
@@ -62,18 +63,7 @@ const PlannerChatInterface: React.FC = () => {
       style={isDarkTheme ? { background: '#383838', display: 'flex', minHeight: '100vh' } : { display: 'flex', minHeight: '100vh' }}
     >
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <ChatUI
-          messages={messages}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          isLoading={isLoading}
-          error={error}
-          onSend={sendMessage}
-          onClear={clearChat}
-          onKeyPress={handleKeyPress}
-          formatMessage={t => t}
-          agentName="Planner Agent"
-        />
+        <Home/>
       </div>
       <div
         className="right-sidebar-planner"
