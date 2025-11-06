@@ -14,15 +14,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onLogout,
 }) => {
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div
+      className="landing-page-container"
+      style={{ display: "flex", minHeight: "100vh" }}
+    >
       <LandingPage
         userProfile={userProfile}
         agents={agents}
         onLogout={onLogout}
       />
-      <div style={{ flex: 1 }}>
+      <main className="main-content-area" style={{ flex: 1 }}>
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 };

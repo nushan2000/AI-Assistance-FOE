@@ -59,7 +59,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
   // sidebar only — route components render into the Outlet in MainLayout
 
   return (
-    <div className="landing-page-container">
+    <>
       <aside className={`sidebar-landing${collapsed ? " collapsed" : ""}`}>
         <div className="sidebar-top-row">
           <div
@@ -335,7 +335,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         )}
       </aside>
-    </div>
+    </>
   );
 };
 
