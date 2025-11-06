@@ -304,3 +304,7 @@ local_config.py
 local_settings.py
 
 backend-HBA/.env
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md

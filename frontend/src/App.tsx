@@ -1,25 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 // import AuthPage from './components/AuthForms/AuthPage';
-import { ThemeProvider } from './context/ThemeContext';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { GlobalLoaderProvider } from './context/GlobalLoaderContext';
-import HomePage from './components/HomePage/HomePage';
-import ChatInterface from './components/GuidanceAgent/ChatInterface';
-import BookingChatInterface from './components/BookingAgent/BookingChatInterface';
-import PlannerChatInterface from './components/PlannerAgent/PlannerChatInterface';
-import GlobalLoader from './components/GlobalLoader/GlobalLoader';
-import './App.css';
-import './components/GlobalLoader/GlobalLoader.css';
-import { NotificationProvider } from './context/NotificationContext';
-import MainLayout from './components/MainLayout';
-import LandingPage from './components/LandingPage/LandingPage';
-import { agentCardData } from './utils/AgentCardData';
+import "./App.css";
+import "./components/GlobalLoader/GlobalLoader.css";
+import { ThemeProvider } from "./context/ThemeContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { GlobalLoaderProvider } from "./context/GlobalLoaderContext";
+import HomePage from "./components/HomePage/HomePage";
+import ChatInterface from "./components/GuidanceAgent/ChatInterface";
+import BookingChatInterface from "./components/BookingAgent/BookingChatInterface";
+import PlannerChatInterface from "./components/PlannerAgent/PlannerChatInterface";
+import GlobalLoader from "./components/GlobalLoader/GlobalLoader";
+import { NotificationProvider } from "./context/NotificationContext";
+import MainLayout from "./components/MainLayout";
+import Dashboard from "./components/LandingPage/Dashboard";
+import { Navigate } from "react-router-dom";
+import { agentCardData } from "./utils/AgentCardData";
 // const HomePage = require('./components/HomePage/HomePage').default;
 //     const { Router } = require('react-router-dom');
 
 const LoaderOnRouteChange: React.FC = () => {
-  const { loading, showLoader, hideLoader } = require('./context/GlobalLoaderContext').useGlobalLoader();
-  const location = require('react-router-dom').useLocation();
+  const { loading, showLoader, hideLoader } =
+    require("./context/GlobalLoaderContext").useGlobalLoader();
+  const location = require("react-router-dom").useLocation();
   React.useEffect(() => {
     showLoader();
     const timer = setTimeout(() => {
@@ -38,7 +40,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authToken = localStorage.getItem('auth_token');
+      const authToken = localStorage.getItem("auth_token");
       if (!authToken) {
         setIsAuthenticated(false);
         setUserProfile(null);
@@ -46,28 +48,28 @@ const App: React.FC = () => {
         return;
       }
       try {
-        const response = await fetch('http://localhost:5000/auth/me', {
-          method: 'GET',
+        const response = await fetch("http://localhost:5000/auth/me", {
+          method: "GET",
           headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
           },
         });
-        const newToken = response.headers.get('x-access-token');
+        const newToken = response.headers.get("x-access-token");
         if (newToken) {
-          localStorage.setItem('auth_token', newToken);
+          localStorage.setItem("auth_token", newToken);
         }
         if (response.ok) {
           const profile = await response.json();
           setIsAuthenticated(true);
           setUserProfile(profile);
         } else {
-          localStorage.removeItem('auth_token');
+          localStorage.removeItem("auth_token");
           setIsAuthenticated(false);
           setUserProfile(null);
         }
       } catch {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem("auth_token");
         setIsAuthenticated(false);
         setUserProfile(null);
       }
@@ -77,7 +79,7 @@ const App: React.FC = () => {
   }, []);
 
   function handleLogout() {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem("auth_token");
     setIsAuthenticated(false);
     setUserProfile(null);
   }
@@ -94,19 +96,22 @@ const App: React.FC = () => {
             <Router>
               <HomePage
                 onAuthSuccess={async () => {
-                  const authToken = localStorage.getItem('auth_token');
+                  const authToken = localStorage.getItem("auth_token");
                   if (!authToken) return;
                   try {
-                    const response = await fetch('http://localhost:5000/auth/me', {
-                      method: 'GET',
-                      headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                      },
-                    });
-                    const newToken = response.headers.get('x-access-token');
+                    const response = await fetch(
+                      "http://localhost:5000/auth/me",
+                      {
+                        method: "GET",
+                        headers: {
+                          Authorization: `Bearer ${authToken}`,
+                          "Content-Type": "application/json",
+                        },
+                      }
+                    );
+                    const newToken = response.headers.get("x-access-token");
                     if (newToken) {
-                      localStorage.setItem('auth_token', newToken);
+                      localStorage.setItem("auth_token", newToken);
                     }
                     if (response.ok) {
                       const profile = await response.json();
@@ -132,11 +137,21 @@ const App: React.FC = () => {
           <Router>
             <LoaderOnRouteChange />
             <Routes>
-              <Route path="/" element={<LandingPage agents={agents} userProfile={userProfile} onLogout={handleLogout} />} />
-              <Route element={<MainLayout />}>
-                <Route path="/guidance-chat" element={<ChatInterface />} />
-                <Route path="/booking-chat" element={<BookingChatInterface />} />
-                <Route path="/planner-chat" element={<PlannerChatInterface />} />
+              <Route
+                path="/"
+                element={
+                  <MainLayout
+                    userProfile={userProfile}
+                    agents={agents}
+                    onLogout={handleLogout}
+                  />
+                }
+              >
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="guidance-chat" element={<ChatInterface />} />
+                <Route path="booking-chat" element={<BookingChatInterface />} />
+                <Route path="planner-chat" element={<PlannerChatInterface />} />
               </Route>
             </Routes>
           </Router>
@@ -144,5 +159,5 @@ const App: React.FC = () => {
       </GlobalLoaderProvider>
     </ThemeProvider>
   );
-}
+};
 export default App;
