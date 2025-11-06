@@ -172,13 +172,14 @@ Respond in **only JSON format**, without explanations.
                 cleaned_response = re.sub(r"^```json|```$", "", llm_response.strip(), flags=re.MULTILINE).strip()
                 parsed = json.loads(cleaned_response)
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"LLM call/parse error: {str(e)}")
-
+                return {
+                    "status": "unsupported_action",
+                    "message": "I can only help with room bookings. Please provide booking details.",
+                }
             if "action" not in parsed or "parameters" not in parsed:
                 return {
-                    "status": "llm_response_invalid",
-                    "message": "LLM did not return a valid action or parameters.",
-                    "llm_response": cleaned_response
+                    "status": "unsupported_action",
+                    "message": "I can only help with room bookings. Please provide booking details.",
                 }
 
             action = parsed["action"]

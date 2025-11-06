@@ -14,7 +14,8 @@ from typing import Optional, List, Any
 from src.api import router 
 from src.deepseek_llm import DeepSeekLLM
 from fastapi.middleware.cors import CORSMiddleware
-
+from src.availability_logic import fetch_user_profile_by_email as fetch_profile_logic
+from src.swap.swapMain import router as swap_router
 app = FastAPI()
 
 # 👇 Allow frontend on localhost:3000
@@ -32,7 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
-
+app.include_router(swap_router)
 # Configure logging
 # logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 # logger = logging.getLogger(__name__)
@@ -162,6 +163,7 @@ def fetch_booking_by_id(booking_id: int, db: Session = Depends(get_db)):
         "description": booking.description,
         "created_by": booking.create_by,
         "modified_by": booking.modified_by,
+        "room_id": booking.room_id,
         "room_name": room_name,
         "start_time": start_time_str,
         "end_time": end_time_str,
@@ -242,3 +244,16 @@ def fetch_halls_by_moduleCode(module_code: str, db: Session = Depends(get_db)):
     from src.availability_logic import fetch_halls_by_module_code as fetch_halls_logic
 
     return fetch_halls_logic(module_code, db)
+
+@app.get("/bookings/by-date/{date}/{room_id}")
+def get_bookings_by_date_endpoint(date: str, room_id: int, db: Session = Depends(get_db)):
+    """
+    Fetch all bookings for a given date (YYYY-MM-DD) and room.
+    """
+    from src.availability_logic import get_bookings_by_date_and_room
+    return get_bookings_by_date_and_room(date, room_id, db)
+
+
+@app.get("/fetch_user_profile_by_email/{email}")
+def fetch_user_profile_by_email_route(email: str, db: Session = Depends(get_db)):
+    return fetch_profile_logic(email, db)

@@ -512,3 +512,52 @@ def cancel_booking(room_name: str, date: str, start_time: str, end_time: str, db
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error cancelling booking: {e}")
+
+def get_bookings_by_date_and_room(date: str, room_id: int, db: Session):
+    try:
+        day_start = datetime.strptime(date, "%Y-%m-%d")
+        next_day = day_start + timedelta(days=1)
+
+        start_ts = int(time.mktime(day_start.timetuple()))
+        next_day_ts = int(time.mktime(next_day.timetuple()))
+
+        bookings = (
+            db.query(models.MRBSEntry)
+            .filter(
+                models.MRBSEntry.start_time < next_day_ts,
+                models.MRBSEntry.end_time > start_ts,
+                models.MRBSEntry.room_id == room_id
+            )
+            .order_by(models.MRBSEntry.start_time.asc())
+            .all()
+        )
+
+        return [
+            {
+                "id": b.id,
+                "room_id": b.room_id,
+                "name": b.name,
+                "date": datetime.fromtimestamp(b.start_time).strftime("%Y-%m-%d"),
+                "start_time": datetime.fromtimestamp(b.start_time).strftime("%H:%M"),
+                "end_time": datetime.fromtimestamp(b.end_time).strftime("%H:%M"),
+                "created_by": b.create_by,
+                "status": b.status,
+            }
+            for b in bookings
+        ]
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format (expected YYYY-MM-DD): {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching bookings by date: {e}")
+
+def fetch_user_profile_by_email(email: str, db: Session):
+    user = db.query(models.MRBSUser).filter(models.MRBSUser.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role
+    }

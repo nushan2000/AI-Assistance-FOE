@@ -17,10 +17,12 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
+import { useNotification } from '../../context/NotificationContext';
 import { fetchUserEmailFromProfile } from "../../services/api";
+import { fetchUserProfile } from "../../services/userAPI";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import type { SelectChangeEvent } from "@mui/material/Select";
 interface Message {
   role: "user" | "assistant";
   content: string | JSX.Element;
@@ -57,6 +59,7 @@ const BookingChatInterface: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isSwap, setIsSwap] = useState(false);
   const [roomOptions, setRoomOptions] = useState<string[]>([]);
   // const roomOptions = ["LT1", "LT2", "Lab1", "Lab2"]; // Add as needed
   // const moduleOptions = ["CE001", "CE002", "CS101", "ME202"];
@@ -67,6 +70,7 @@ const BookingChatInterface: React.FC = () => {
   const [formData, setFormData] = useState({
     room_name: "LT1",
     name:"",
+    room_id: Number(0),
     // module_code: '',
     date: "",
     start_time: "",
@@ -74,7 +78,7 @@ const BookingChatInterface: React.FC = () => {
   });
   //remove
   const [sessionId] = useState("");
-
+  const { notify } = useNotification();
   const { theme } = useTheme();
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -573,6 +577,12 @@ const [email, setEmail] = useState<string | null>(null);
       [field]: value,
     }));
   };
+  const handleSwapChange = (field: string, value: string) => {
+    setSwapData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
   const handleUpdate = () => {
     updateBooking(calendarCellInfo.id, formData);
   };
@@ -629,11 +639,11 @@ handleChatUpdate();
         date: formattedDate, // 👈 send normalized date
       }
     );
-    toast.success("✅ Booking updated successfully!");
+    notify('success', "✅ Booking updated successfully!");
     console.log("✅ Booking updated:", response.data);
     handleChatUpdate();
   } catch (error:any) {
-    toast.error(`❌ Failed to update booking: ${error.response?.data?.message || error.message}`);
+    notify('error', `❌ Failed to update booking: ${error.response?.data?.message || error.message}`);
     console.error("❌ Error updating booking:", error);
   }
 };
@@ -649,9 +659,12 @@ handleChatUpdate();
           params: { booking_id: calendarCellInfo.id },
         }
       );
+      console.log("Fetched booking details:", response.data);
+      
       setFormData({
         room_name: response.data.room_name,
         name:response.data.name,
+        room_id: response.data.room_id,
         // module_code: response.data.module_code,
         date: response.data.timestamp,
         start_time: response.data.start_time,
@@ -696,10 +709,98 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
 useEffect(() => {
   if (calendarCellInfo) {
     fetchBookingById(calendarCellInfo.id);
+    // fetch_user_id();
     if(email)
     fetch_moduleCodes_by_user_email(email)
   }
 }, [calendarCellInfo]);
+
+// const [userID, setUserID] = useState<number | null>(null);
+// const fetch_user_id = async () => {
+//   try {
+//     const response=await axios.get(`http://127.0.0.1:8000/fetch_user_profile_by_email/${email}`);
+//     setUserID(response.data.id);
+//   } catch (error) {
+//     console.error("Error fetching user ID:", error);
+//   }
+// };
+
+
+const [bookingOptions, setBookingOptions] = React.useState<{code: string; time: string; id: number}[]>([]);
+const [swapData, setSwapData] = useState<{date: string; name: string; start_time: string; end_time: string; id: number}>({
+  date: "",
+  name: "",
+  id: 0,
+  start_time: "",
+  end_time: ""
+});
+const create_swap_request = async () => {
+  console.log("Swap Data", swapData);
+  // console.log("userID:", userID);
+
+  try {
+    const response = await axios.post(`http://127.0.0.1:8000/swap/request`, {
+      requested_by_email: email,
+      requested_booking_id: swapData.id,
+      offered_booking_id: Number(calendarCellInfo.id)
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating swap request:", error);
+    throw error;
+  }
+};
+
+//complete this function add aufill section
+const fetch_booking_by_date_and_roomId = async (date: string, roomId: number) => {
+  try {
+    const response = await axios.get(`http://127.0.0.1:8000/bookings/by-date/${date}/${roomId}`);
+    return response.data;
+  } catch (error) {
+    toast.error("❌ Failed to fetch booking");
+    console.error("❌ Error fetching booking:", error);
+    return null;
+  }
+};
+const handleDateChange = async (date: string) => {
+  handleSwapChange("date", date);
+  // LT1
+  if (formData.room_id) {  // only fetch if roomId is 17
+    const bookings = await fetch_booking_by_date_and_roomId(date, formData.room_id);
+
+    if (bookings) {
+      const options = bookings.map((b: any) => ({
+        code: b.name, // module code (assuming `name` is your moduleCode)
+        time: `${b.start_time} - ${b.end_time}`,
+        id:b.id // timeslot
+      }));
+
+      setBookingOptions(options);
+    }
+  }
+};
+const handleSelect = (e: SelectChangeEvent<number | string>) => {
+    // MUI often returns string even for numeric values, so normalize to number
+    const raw = e.target.value;
+    console.log("Raw value from select event:", raw, typeof raw);
+    
+    const selectedId = typeof raw === "string" ? Number(raw) : (raw as number);
+
+    console.log("raw value from select:", raw, "parsed id:", selectedId);
+
+    const selectedOption = bookingOptions.find((o) => o.id === selectedId);
+    if (!selectedOption) {
+      // debug: this means types or values don't match
+      console.warn("Selected option not found for id:", selectedId, bookingOptions);
+    }
+    // setSwapData(prev => ({...prev, name: e.target.value}));
+    setSwapData((prev) => ({
+      ...prev,
+      id: selectedId,
+      
+    }));
+  };
+
 
   return (
     <div
@@ -860,6 +961,17 @@ useEffect(() => {
               >
                 Edit
               </Button>
+              <Button
+                onClick={() => {
+                  setIsSwap(true);
+                  fetchBookingById(calendarCellInfo.id);
+                
+                }}  
+                variant="contained"
+                color="primary"
+              >
+                Swap
+              </Button>
               {/* <Button
             onClick={() => deleteBooking(calendarCellInfo.id)}
             variant="contained"
@@ -964,6 +1076,128 @@ useEffect(() => {
             color="primary"
           >
             Update
+          </Button>
+          
+        </DialogActions>
+      </Dialog>
+      {/* <RightDrawer /> */}
+      <Dialog
+        open={isSwap}
+        onClose={() => setIsSwap(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Swap Booking</DialogTitle>
+        <DialogContent>
+          {/* Room Name */}
+           <Box display="flex" mb={2} gap={2}>
+            <FormControl fullWidth>
+              <InputLabel>Module Code</InputLabel>
+              <Select
+               value={formData.name || ""}
+               onChange={(e) => {handleChange("name", e.target.value);
+                fetch_halls_by_moduleCode(e.target.value);
+               }}
+              >
+                {moduleOptions.map((code) => (
+                  <MenuItem key={code} value={code}>
+                    {code}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          
+            <FormControl fullWidth>
+              <InputLabel>Room Name</InputLabel>
+              <Select
+                value={formData.room_name || ""}
+                onChange={(e) => handleChange("room_name", e.target.value)}
+                disabled={!formData.name}
+              >
+                {selectedRoomOptions.map((room) => (
+                  <MenuItem key={room} value={room}>
+                    {room}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          
+            <TextField
+              fullWidth
+              type="date"
+              label="Date"
+              InputLabelProps={{ shrink: true }}
+              value={formData.date.slice(0, 10)}
+              onChange={(e) => handleChange("date", e.target.value)}
+            />
+          </Box>
+
+          {/* Start and End Time */}
+          <Box display="flex" gap={2} mb={2}>
+            <TextField
+              fullWidth
+              type="time"
+              label="Start Time"
+              InputLabelProps={{ shrink: true }}
+              value={
+                formData.start_time ? formData.start_time.slice(0, 5) : ""
+              }
+              onChange={(e) => handleChange("start_time", e.target.value)}
+              inputProps={{ step: 300 }} // 5-minute steps
+            />
+            <TextField
+              fullWidth
+              type="time"
+              label="End Time"
+              InputLabelProps={{ shrink: true }}
+              value={formData.end_time ? formData.end_time.slice(0, 5) : ""}
+              onChange={(e) => handleChange("end_time", e.target.value)}
+            />
+          </Box>
+          <DialogTitle>Swap With</DialogTitle>
+          <Box display="flex" mb={2} gap={2}>
+           <FormControl fullWidth>
+  <TextField
+    fullWidth
+    type="date"
+    label="Date"
+    InputLabelProps={{ shrink: true }}
+    value={swapData.date.slice(0, 10)}
+    onChange={(e) => handleDateChange(e.target.value)}
+  />
+</FormControl>
+
+            <FormControl fullWidth>
+  <InputLabel>Module & Time</InputLabel>
+  <Select
+        labelId="module-time-label"
+        id="module-time-select"
+        value={swapData.id ?? ""}
+        label="Module & Time"
+        onChange={handleSelect}
+        // onChange={(e) => setSwapData(prev => ({...prev, name: e.target.value}))}
+      >
+        {bookingOptions.map((option) => (
+          <MenuItem key={option.id} value={option.id}>
+            {option.code} ({option.time})
+          </MenuItem>
+        ))}
+      </Select>
+</FormControl>
+ 
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setIsSwap(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => create_swap_request()}
+            variant="contained"
+            color="primary"
+          >
+            Swap
           </Button>
           
         </DialogActions>
