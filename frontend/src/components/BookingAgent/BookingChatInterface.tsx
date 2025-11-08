@@ -675,7 +675,7 @@ handleChatUpdate();
     fetch_halls_by_moduleCode(response.data.name);
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
-      toast.error("❌ Failed to fetch booking details");
+      // toast.error("❌ Failed to fetch booking details");
       console.error("❌ Error fetching booking:", error);
     }
   };
@@ -687,7 +687,7 @@ const fetch_moduleCodes_by_user_email = async (email: string) => {
     setModuleOptions(response.data);
     return response.data;
   } catch (error) {
-    toast.error("❌ Failed to fetch module codes");
+    // toast.error("❌ Failed to fetch module codes");
     console.error("❌ Error fetching module codes:", error);
     return [];
   }
@@ -701,7 +701,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
     setSelectedRoomOptions(response.data);
     return response.data;
   } catch (error) {
-    toast.error("❌ Failed to fetch halls");
+    // toast.error("❌ Failed to fetch halls");
     console.error("❌ Error fetching halls:", error);
     return [];
   }
@@ -745,11 +745,13 @@ const create_swap_request = async () => {
       offered_booking_id: Number(calendarCellInfo.id)
     });
     return response.data;
+    
   } catch (error) {
     console.error("Error creating swap request:", error);
     throw error;
   }
 };
+
 
 //complete this function add aufill section
 const fetch_booking_by_date_and_roomId = async (date: string, roomId: number) => {
@@ -757,49 +759,54 @@ const fetch_booking_by_date_and_roomId = async (date: string, roomId: number) =>
     const response = await axios.get(`http://127.0.0.1:8000/bookings/by-date/${date}/${roomId}`);
     return response.data;
   } catch (error) {
-    toast.error("❌ Failed to fetch booking");
+    // toast.error("❌ Failed to fetch booking");
     console.error("❌ Error fetching booking:", error);
     return null;
   }
 };
-const handleDateChange = async (date: string) => {
-  handleSwapChange("date", date);
-  // LT1
-  if (formData.room_id) {  // only fetch if roomId is 17
-    const bookings = await fetch_booking_by_date_and_roomId(date, formData.room_id);
-
-    if (bookings) {
-      const options = bookings.map((b: any) => ({
-        code: b.name, // module code (assuming `name` is your moduleCode)
-        time: `${b.start_time} - ${b.end_time}`,
-        id:b.id // timeslot
-      }));
-
-      setBookingOptions(options);
-    }
-  }
-};
+// Update handleSelect function
 const handleSelect = (e: SelectChangeEvent<number | string>) => {
-    // MUI often returns string even for numeric values, so normalize to number
     const raw = e.target.value;
-    console.log("Raw value from select event:", raw, typeof raw);
-    
     const selectedId = typeof raw === "string" ? Number(raw) : (raw as number);
-
-    console.log("raw value from select:", raw, "parsed id:", selectedId);
-
+    
+    // Find the selected booking option
     const selectedOption = bookingOptions.find((o) => o.id === selectedId);
-    if (!selectedOption) {
-      // debug: this means types or values don't match
-      console.warn("Selected option not found for id:", selectedId, bookingOptions);
+    
+    if (selectedOption) {
+        // Update all relevant swap data
+        setSwapData((prev) => ({
+            ...prev,
+            id: selectedId,
+            name: selectedOption.code, // Set the module code
+            start_time: selectedOption.time.split(' - ')[0], // Set start time
+            end_time: selectedOption.time.split(' - ')[1], // Set end time
+        }));
     }
-    // setSwapData(prev => ({...prev, name: e.target.value}));
+};
+
+// Update handleDateChange function
+const handleDateChange = async (date: string) => {
     setSwapData((prev) => ({
-      ...prev,
-      id: selectedId,
-      
+        ...prev,
+        date: date,
+        name: '', // Reset module code when date changes
+        start_time: '',
+        end_time: ''
     }));
-  };
+
+    if (formData.room_id) {
+        const bookings = await fetch_booking_by_date_and_roomId(date, formData.room_id);
+
+        if (bookings) {
+            const options = bookings.map((b: any) => ({
+                code: b.name,
+                time: `${b.start_time} - ${b.end_time}`,
+                id: b.id
+            }));
+            setBookingOptions(options);
+        }
+    }
+};
 
 
   return (
@@ -961,17 +968,25 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
               >
                 Edit
               </Button>
-              <Button
-                onClick={() => {
-                  setIsSwap(true);
-                  fetchBookingById(calendarCellInfo.id);
-                
-                }}  
-                variant="contained"
-                color="primary"
-              >
-                Swap
-              </Button>
+
+              {/* show Swap only when selected cell's title matches a module option */}
+              {calendarCellInfo &&
+                moduleOptions.some(
+                  (m) =>
+                    String(m).toLowerCase().trim() ===
+                    String(calendarCellInfo.title).toLowerCase().trim()
+                ) && (
+                  <Button
+                    onClick={() => {
+                      setIsSwap(true);
+                      fetchBookingById(calendarCellInfo.id);
+                    }}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Swap
+                  </Button>
+              )}
               {/* <Button
             onClick={() => deleteBooking(calendarCellInfo.id)}
             variant="contained"

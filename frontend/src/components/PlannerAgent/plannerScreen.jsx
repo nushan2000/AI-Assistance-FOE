@@ -16,6 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
 import { useEffect } from "react";
+import "./ExamTimeTable.css";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "#fff",
@@ -52,22 +53,41 @@ const timeSlots = Array.from(
 
 // Timetable display table
 function TimetableTable({ timetable }) {
+const [selectedFile, setSelectedFile] = React.useState(null);
+  const [theme, setTheme] = React.useState("light");
+
+    useEffect(() => {
+    const docTheme =
+      document.documentElement.getAttribute("data-theme") ||
+      (document.body.classList.contains("dark-theme") ? "dark" : null);
+    if (docTheme) setTheme(docTheme === "dark" ? "dark" : "light");
+    // basic listener to react to future changes (optional)
+    const observer = new MutationObserver(() => {
+      const newTheme =
+        document.documentElement.getAttribute("data-theme") ||
+        (document.body.classList.contains("dark-theme") ? "dark" : "light");
+      setTheme(newTheme === "dark" ? "dark" : "light");
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
   console.log("Timetable data:", timetable);
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
+    <TableContainer component={Paper} className="exam-table">
+      <Table size="small" className="calendar-grid">
         <TableHead>
           <TableRow>
-            <TableCell>Time</TableCell>
+            <TableCell className="exam-header">Time</TableCell>
             {days.map((day) => (
-              <TableCell key={day}>{day}</TableCell>
+              <TableCell key={day} className="exam-header">{day}</TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
           {timeSlots.map((slotLabel, rowIdx) => (
             <TableRow key={slotLabel}>
-              <TableCell>{slotLabel}</TableCell>
+              <TableCell className="exam-cell day-cell" component="th" scope="row">{slotLabel}</TableCell>
               {days.map((day) => {
                 const slotModules = timetable?.[day]?.[rowIdx] || [];
                 console.log(`Slot ${day} ${rowIdx}:`, slotModules);

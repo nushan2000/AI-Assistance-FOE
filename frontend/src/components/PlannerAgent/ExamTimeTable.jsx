@@ -16,6 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
 import { useEffect } from "react";
+import "./ExamTimeTable.css";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "#fff",
@@ -51,60 +52,84 @@ const timeSlots = Array.from(
 );
 
 // Timetable display table
+// Timetable display table (Days as rows, Time slots as columns)
 function TimetableTable({ timetable }) {
+  
   console.log("Timetable data:", timetable);
-  return (
-    <TableContainer component={Paper}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Time</TableCell>
-            {days.map((day) => (
-              <TableCell key={day}>{day}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {timeSlots.map((slotLabel, rowIdx) => (
-            <TableRow key={slotLabel}>
-              <TableCell>{slotLabel}</TableCell>
-              {days.map((day) => {
-                const slotModules = timetable?.[day]?.[rowIdx] || [];
-                console.log(`Slot ${day} ${rowIdx}:`, slotModules);
 
-                return (
-                  <TableCell
-                    key={day + "-" + rowIdx}
-                    sx={{
-                      backgroundColor: slotModules.length
-                        ? "#1976d2"
-                        : "transparent",
-                      color: slotModules.length ? "white" : "inherit",
-                      textAlign: "center",
-                      fontWeight: slotModules.length ? 600 : "normal",
-                      verticalAlign: "middle",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {slotModules.map((mod, i) => (
-                      <div key={i}>
-                        {mod.code} ({mod.hall})
-                      </div>
-                    ))}
-                  </TableCell>
-                );
-              })}
+  return (
+    <TableContainer component={Paper} className="exam-table">
+        <Table size="small" className="calendar-grid">
+          <TableHead>
+            <TableRow>
+              <TableCell className="exam-header">Day</TableCell>
+              {timeSlots.map((slotLabel) => (
+                <TableCell key={slotLabel} className="exam-header">
+                  {slotLabel}
+                </TableCell>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+
+          <TableBody>
+            {days.map((day) => (
+              <TableRow key={day}>
+                <TableCell className="exam-cell day-cell" component="th" scope="row">
+                  {day}
+                </TableCell>
+
+                {timeSlots.map((slotLabel, slotIdx) => {
+                  const slotModules = timetable?.[day]?.[slotIdx] || [];
+                  const hasModules = slotModules.length > 0;
+                  return (
+                    <TableCell
+                      key={day + "-" + slotIdx}
+                      className={`exam-cell slot-cell ${hasModules ? "has-modules" : ""}`}
+                      align="center"
+                      sx={{
+                        verticalAlign: "middle",
+                        whiteSpace: "pre-line",
+                        fontWeight: hasModules ? 600 : "normal",
+                      }}
+                    >
+                      {hasModules
+                        ? slotModules.map((mod, i) => (
+                            <div key={i}>
+                              {mod.code} ({mod.hall})
+                            </div>
+                          ))
+                        : "-"}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
   );
 }
 
 export default function ExamTimeTable() {
   const [tab, setTab] = React.useState(0);
   const [selectedFile, setSelectedFile] = React.useState(null);
+  const [theme, setTheme] = React.useState("light");
+
+    useEffect(() => {
+    const docTheme =
+      document.documentElement.getAttribute("data-theme") ||
+      (document.body.classList.contains("dark-theme") ? "dark" : null);
+    if (docTheme) setTheme(docTheme === "dark" ? "dark" : "light");
+    // basic listener to react to future changes (optional)
+    const observer = new MutationObserver(() => {
+      const newTheme =
+        document.documentElement.getAttribute("data-theme") ||
+        (document.body.classList.contains("dark-theme") ? "dark" : "light");
+      setTheme(newTheme === "dark" ? "dark" : "light");
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   const semesters = [1, 3, 5, 7];
   const [calenderData, setCalenderData] = React.useState(
