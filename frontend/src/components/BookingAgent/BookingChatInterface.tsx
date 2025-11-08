@@ -18,8 +18,10 @@ import {
   TextField,
 } from "@mui/material";
 import { useNotification } from '../../context/NotificationContext';
-import { fetchUserEmailFromProfile } from "../../services/api";
+
 import { fetchUserProfile } from "../../services/userAPI";
+import { fetchUserEmailFromProfile, apiService } from "../../services/api";
+import { getAccessToken } from '../../services/authAPI';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { SelectChangeEvent } from "@mui/material/Select";
@@ -77,15 +79,22 @@ const BookingChatInterface: React.FC = () => {
     end_time: "",
   });
   //remove
-  const [sessionId] = useState("");
+  
   const { notify } = useNotification();
+  
+  // Generate a proper session ID
+  const [sessionId] = useState(() => 
+    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );  
+  
+
   const { theme } = useTheme();
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const [refreshCalendar, setRefreshCalendar] = useState(0);
   const [calendarCellInfo, setCalendarCellInfo] = useState<any>(null);
-const [email, setEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const getEmail = async () => {
@@ -96,6 +105,7 @@ const [email, setEmail] = useState<string | null>(null);
    
     
   }, []);
+
   // Called when chat updates
   const handleChatUpdate = () => {
     setRefreshCalendar((prev) => prev + 1); // increment to trigger refresh
@@ -174,34 +184,32 @@ const [email, setEmail] = useState<string | null>(null);
       };
       setMessages((prev) => [...prev, bookingMessage]);
 
-      const response = await axios.post("http://127.0.0.1:8000/ask_llm/", {
-        question: `Book ${room_name} on ${date} from ${startTimeStr} to ${endTimeStr}`,
-        session_id: sessionId,
-      });
+      // Use apiService instead of direct axios call
+      const response = await apiService.askLLM(
+        sessionId, 
+        `Book ${room_name} on ${date} from ${startTimeStr} to ${endTimeStr}`
+      );
 
       let responseContent = "";
 
-      if (response.data.message) {
-        responseContent = response.data.message;
+      if (response.message) {
+        responseContent = response.message;
       }
 
-      if (response.data.status === "available" || response.data.booking_id) {
-        responseContent = `✅ Successfully booked ${room_name}! ${response.data.message}`;
-      } else if (response.data.status === "unavailable") {
-        responseContent = `⚠️ ${response.data.message}`;
-      } else if (response.data.status === "room_not_found") {
-        responseContent = `❌ ${response.data.message}`;
-      } else if (response.data.status === "missing_parameters") {
-        responseContent = `❓ ${response.data.message}`;
+      if (response.status === "available" || response.booking_id) {
+        responseContent = `✅ Successfully booked ${room_name}! ${response.message}`;
+      } else if (response.status === "unavailable") {
+        responseContent = `⚠️ ${response.message}`;
+      } else if (response.status === "room_not_found") {
+        responseContent = `❌ ${response.message}`;
+      } else if (response.status === "missing_parameters") {
+        responseContent = `❓ ${response.message}`;
       }
 
       const responseMessage: Message = {
         role: "assistant",
-        content:
-          responseContent ||
-          response.data.message ||
-          "Booking processed successfully!",
-        recommendations: response.data.recommendations || [],
+        content: responseContent || response.message || "Booking processed successfully!",
+        recommendations: response.recommendations || [],
         showRecommendations: false,
       };
 
@@ -431,8 +439,10 @@ const [email, setEmail] = useState<string | null>(null);
     }
   };
 
+// MAIN FIX: Use apiService instead of direct axios call
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
+    
     const newMessage: Message = { role: "user", content: inputValue };
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
@@ -440,88 +450,85 @@ const [email, setEmail] = useState<string | null>(null);
     setError("");
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/ask_llm/", {
-        question: inputValue,
-        session_id: sessionId,
-      });
+      // Use apiService.askLLM instead of direct axios call
+      const response = await apiService.askLLM(sessionId, inputValue);
 
       let responseContent = "";
       let recommendations: Recommendation[] = [];
       let showRecommendations = false;
 
-      if (response.data.message) {
-        responseContent = response.data.message;
+      if (response.message) {
+        responseContent = response.message;
       }
 
-      if (
-        response.data.recommendations &&
-        response.data.recommendations.length > 0
-      ) {
-        recommendations = response.data.recommendations;
+      if (response.recommendations && response.recommendations.length > 0) {
+        recommendations = response.recommendations;
         showRecommendations = true;
       }
 
       if (
-        response.data.status === "unavailable" ||
-        response.data.status === "no_slots_available"
+        response.status === "unavailable" ||
+        response.status === "no_slots_available"
       ) {
         if (
-          response.data.message &&
-          response.data.message.includes("already booked for that time")
+          response.message &&
+          response.message.includes("already booked for that time")
         ) {
           showRecommendations = true;
         }
       }
 
-      if (response.data.status === "room_not_found") {
-        responseContent = `❌ ${response.data.message}`;
+      if (response.status === "room_not_found") {
+        responseContent = `❌ ${response.message}`;
         showRecommendations = false;
-      } else if (response.data.status === "unavailable") {
-        responseContent = `⚠️ ${response.data.message}`;
+      } else if (response.status === "unavailable") {
+        responseContent = `⚠️ ${response.message}`;
         showRecommendations =
-          response.data.message &&
-          response.data.message.includes("already booked for that time") &&
+          response.message &&
+          response.message.includes("already booked for that time") &&
           recommendations.length > 0;
-      } else if (response.data.status === "available") {
-        responseContent = `✅ ${response.data.message}`;
-      } else if (response.data.status === "missing_parameters") {
-        responseContent = `❓ Please provide more information: ${response.data.message}`;
-      } else if (response.data.status === "no_slots_available") {
-        responseContent = `⚠️ ${response.data.message}`;
+      } else if (response.status === "available") {
+        responseContent = `✅ ${response.message}`;
+      } else if (response.status === "missing_parameters") {
+        responseContent = `❓ Please provide more information: ${response.message}`;
+      } else if (response.status === "no_slots_available") {
+        responseContent = `⚠️ ${response.message}`;
         showRecommendations =
-          response.data.message &&
-          response.data.message.includes("already booked for that time") &&
+          response.message &&
+          response.message.includes("already booked for that time") &&
           recommendations.length > 0;
       }
 
-      // Fake API call
-      setTimeout(() => {
-        const responseMessage: Message = {
-          role: "assistant",
-          content: showRecommendations
-            ? formatMessageWithRecommendations(
-                responseContent ||
-                  "I couldn't process your request. Please try again.",
-                recommendations
-              )
-            : responseContent || `${response.data.message}`,
-          recommendations: recommendations,
-          showRecommendations: showRecommendations,
-        };
-        setMessages((prev) => [...prev, responseMessage]);
-        setIsLoading(false);
-      }, 1000);
+      const responseMessage: Message = {
+        role: "assistant",
+        content: showRecommendations
+          ? formatMessageWithRecommendations(
+              responseContent || "I couldn't process your request. Please try again.",
+              recommendations
+            )
+          : responseContent || `${response.message}`,
+        recommendations: recommendations,
+        showRecommendations: showRecommendations,
+      };
+
+      setMessages((prev) => [...prev, responseMessage]);
       handleChatUpdate();
     } catch (err) {
       console.error("API Error:", err);
 
-      if (axios.isAxiosError(err) && err.response) {
-
-        if (
+      let errorContent = "❌ Something went wrong. Please try again.";
+      
+      // Handle authorization errors
+      if (err instanceof Error && err.message.includes('Access denied')) {
+        errorContent = `🔒 ${err.message}`;
+      } else if (axios.isAxiosError(err) && err.response) {
+        if (err.response.status === 403) {
+          errorContent = `🔒 Access denied. You can only modify bookings you created.`;
+        } else if (
           err.response.data?.detail &&
           typeof err.response.data.detail === "object"
         ) {
-          let errorContent = `❌ ${
+          errorContent = `❌ ${
             err.response.data.detail.message || err.response.data.detail.error
           }`;
           let recommendations: Recommendation[] = [];
@@ -546,12 +553,21 @@ const [email, setEmail] = useState<string | null>(null);
             showRecommendations: showRecommendations,
           };
           setMessages((prev) => [...prev, errorMessage]);
+          setIsLoading(false);
+          return;
+        } else if (err.response.data?.detail && typeof err.response.data.detail === "string") {
+          errorContent = `❌ ${err.response.data.detail}`;
         } else {
-          setError(`Error ${err.response.status}: ${err.response.statusText}`);
+          errorContent = `❌ Error ${err.response.status}: ${err.response.statusText}`;
         }
-      } else {
-        setError("Something went wrong. Please try again.");
       }
+
+      const errorMessage: Message = {
+        role: "assistant",
+        content: errorContent,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -571,6 +587,7 @@ const [email, setEmail] = useState<string | null>(null);
   const formatMessage = (text: string): string => {
     return text;
   };
+
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -603,6 +620,7 @@ const [email, setEmail] = useState<string | null>(null);
 
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
+      console.error("Error creating booking:", error);
     }
   };
 
@@ -614,40 +632,69 @@ const [email, setEmail] = useState<string | null>(null);
         `http://127.0.0.1:8000/booking/delete`,
         {
           data: { booking_id: bookingId },
+          headers: {
+            'Authorization': `Bearer ${getAccessToken()}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
-handleChatUpdate();
+      toast.success("✅ Booking deleted successfully!");
+      handleChatUpdate();
       // Optionally, refresh the calendar or show a success message
-    } catch (error) {
+   } catch (error: any) {
+      let errorMessage = `❌ Failed to delete booking: ${error.response?.data?.message || error.message}`;
+      
+      // Handle authorization errors
+      if (error.response?.status === 403) {
+        errorMessage = "🔒 Access denied. You can only delete bookings you created.";
+      } else if (error.response?.data?.detail && typeof error.response.data.detail === 'string') {
+        errorMessage = `❌ ${error.response.data.detail}`;
+      }
+      
+      toast.error(errorMessage);
+      console.error("❌ Error deleting booking:", error);
     }
   };
 
- const updateBooking = async (bookingId: number, updatedData: any) => {
-  try {
-    // ✅ Normalize date to YYYY-MM-DD
-    let formattedDate = updatedData.date;
-    if (formattedDate) {
-      formattedDate = new Date(formattedDate).toISOString().split("T")[0]; 
-      // e.g. "2025-08-18T09:38:40" → "2025-08-18"
-    }
-
-    const response = await axios.put(
-      `http://127.0.0.1:8000/booking/update_booking`,
-      {
-        booking_id: bookingId,
-        ...updatedData,
-        date: formattedDate, // 👈 send normalized date
+  const updateBooking = async (bookingId: number, updatedData: any) => {
+    try {
+      let formattedDate = updatedData.date;
+      if (formattedDate) {
+        formattedDate = new Date(formattedDate).toISOString().split("T")[0];
       }
-    );
-    notify('success', "✅ Booking updated successfully!");
-    console.log("✅ Booking updated:", response.data);
-    handleChatUpdate();
-  } catch (error:any) {
-    notify('error', `❌ Failed to update booking: ${error.response?.data?.message || error.message}`);
-    console.error("❌ Error updating booking:", error);
-  }
-};
+   
 
+      const response = await axios.put(
+        `http://127.0.0.1:8000/booking/update_booking`,
+        {
+          booking_id: bookingId,
+          ...updatedData,
+          date: formattedDate,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${getAccessToken()}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      notify('success', "✅ Booking updated successfully!");
+      console.log("✅ Booking updated:", response.data);
+      handleChatUpdate();
+    } catch (error: any) {
+      let errorMessage = `❌ Failed to update booking: ${error.response?.data?.message || error.message}`;
+      
+      // Handle authorization errors
+      if (error.response?.status === 403) {
+        errorMessage = "🔒 Access denied. You can only update bookings you created.";
+      } else if (error.response?.data?.detail && typeof error.response.data.detail === 'string') {
+        errorMessage = `❌ ${error.response.data.detail}`;
+      }
+      
+      notify('error', errorMessage);
+      console.error("❌ Error updating booking:", error);
+    }
+  };
 
   const fetchBookingById = async (bookingId: number) => {
     const apiUrl = process.env.REACT_APP_API_URL;
