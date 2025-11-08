@@ -537,7 +537,6 @@ def cancel_booking(room_name: str, date: str, start_time: str, end_time: str, us
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error cancelling booking: {e}")
-<<<<<<< HEAD
 
 def get_bookings_by_date_and_room(date: str, room_id: int, db: Session):
     try:
@@ -587,6 +586,4 @@ def fetch_user_profile_by_email(email: str, db: Session):
         "email": user.email,
         "role": user.role
     }
-=======
     
->>>>>>> f6d699e06250184d6f7bdd58ef3899d90d5166c1
