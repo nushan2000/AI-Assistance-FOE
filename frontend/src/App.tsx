@@ -13,6 +13,8 @@ import GlobalLoader from "./components/GlobalLoader/GlobalLoader";
 import { NotificationProvider } from "./context/NotificationContext";
 import MainLayout from "./components/MainLayout";
 import Dashboard from "./components/LandingPage/Dashboard";
+import DocumentationSection from "./components/Documentation/DocumentationSection";
+import UserProfile from "./components/UserProfile/UserProfile";
 import { Navigate } from "react-router-dom";
 import { agentCardData } from "./utils/AgentCardData";
 // const HomePage = require('./components/HomePage/HomePage').default;
@@ -149,6 +151,14 @@ const App: React.FC = () => {
               >
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route
+                  path="documentation"
+                  element={<DocumentationSection />}
+                />
+                <Route
+                  path="profile"
+                  element={<UserProfile userProfile={userProfile} />}
+                />
                 <Route path="guidance-chat" element={<ChatInterface />} />
                 <Route path="booking-chat" element={<BookingChatInterface />} />
                 <Route path="planner-chat" element={<PlannerChatInterface />} />
