@@ -14,9 +14,15 @@ export function getAllowedAgents(email?: string): Agent[] {
   if (lower === "dean@eng.ruh.ac.lk" || lower === "ar@eng.ruh.ac.lk")
     return all;
 
+  //Correct one for student
   // student domain: only guidance
-  if (lower.endsWith("@engug.ruh.ac.lk"))
-    return all.filter((a) => a.id === "guidance");
+  //   if (lower.endsWith("@engug.ruh.ac.lk"))
+  //     return (
+  //       all.filter((a) => a.id === "guidance")
+  //     );
+
+  //Temporary
+  if (lower.endsWith("@engug.ruh.ac.lk")) return all;
 
   // lecturer domains: guidance + booking
   const lecturerDomains = [

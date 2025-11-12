@@ -45,6 +45,8 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            width: "100%",
+            height: "100%",
             cursor: "pointer",
             boxShadow: "0 4px 24px rgba(30,30,30,0.10)",
             "&:hover": {
@@ -102,7 +104,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
               textAlign: "center",
             }}
           >
-            Get instant academic guidance and answers to your queries.
+            AI guidance to your queries
           </Typography>
         </Card>
       );
@@ -121,6 +123,8 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            width: "100%",
+            height: "100%",
             cursor: "pointer",
             boxShadow: "0 4px 24px rgba(30,30,30,0.10)",
             "&:hover": {
@@ -168,7 +172,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
               textAlign: "center",
             }}
           >
-            Book rooms and resources quickly for your events and meetings.
+            AI powered halls booking
           </Typography>
         </Card>
       );
@@ -186,6 +190,8 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            width: "100%",
+            height: "100%",
             cursor: "pointer",
             boxShadow: "0 4px 24px rgba(30,30,30,0.10)",
             "&:hover": {
@@ -233,7 +239,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
               textAlign: "center",
             }}
           >
-            Organize your schedule and manage tasks efficiently.
+            Quick timetable generation
           </Typography>
         </Card>
       );
@@ -278,7 +284,11 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
                   alignItems: "stretch",
                 }}
               >
-                {agentsList.map((agent) => renderAgentCard(agent))}
+                {agentsList.map((agent) => (
+                  <Box key={agent.id} sx={{ flex: 1, display: "flex" }}>
+                    {renderAgentCard(agent)}
+                  </Box>
+                ))}
               </Box>
             </CardContent>
           </Card>
