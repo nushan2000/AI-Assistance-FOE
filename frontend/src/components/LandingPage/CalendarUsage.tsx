@@ -38,7 +38,10 @@ const CalendarUsage: React.FC = () => {
       .then(([fcMod, dayGridMod, interMod]) => {
         if (!mounted) return;
         setFullCalendarComp(() => fcMod.default || fcMod);
-        setFcPlugins([dayGridMod.default || dayGridMod, interMod.default || interMod]);
+        setFcPlugins([
+          dayGridMod.default || dayGridMod,
+          interMod.default || interMod,
+        ]);
       })
       // ignore errors; the calendar will fall back to sample rendering if missing
       .catch(() => {
@@ -86,7 +89,9 @@ const CalendarUsage: React.FC = () => {
   return (
     <div style={{ marginTop: "1.5rem" }}>
       <h3 style={{ margin: "0 0 0.75rem 0" }}>Usage calendar</h3>
-      <div style={{ boxShadow: "0 6px 30px rgba(0,0,0,0.06)", borderRadius: 12 }}>
+      <div
+        style={{ boxShadow: "0 6px 30px rgba(0,0,0,0.06)", borderRadius: 12 }}
+      >
         {FullCalendarComp && fcPlugins.length > 0 ? (
           <FullCalendarComp
             plugins={fcPlugins}

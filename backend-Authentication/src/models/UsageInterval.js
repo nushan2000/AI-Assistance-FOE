@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const UsageIntervalSchema = new mongoose.Schema({
   // Keep userId as string (JWT contains string id). If you prefer a
@@ -11,4 +11,4 @@ const UsageIntervalSchema = new mongoose.Schema({
   end: { type: Date, required: false, index: true },
 });
 
-module.exports = mongoose.model('UsageInterval', UsageIntervalSchema);
+module.exports = mongoose.model("UsageInterval", UsageIntervalSchema);

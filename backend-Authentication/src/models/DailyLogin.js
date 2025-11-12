@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const DailyLoginSchema = new mongoose.Schema({
   userId: { type: String, required: true, index: true },
@@ -8,4 +8,4 @@ const DailyLoginSchema = new mongoose.Schema({
 
 DailyLoginSchema.index({ userId: 1, date: 1 }, { unique: true });
 
-module.exports = mongoose.model('DailyLogin', DailyLoginSchema);
+module.exports = mongoose.model("DailyLogin", DailyLoginSchema);
