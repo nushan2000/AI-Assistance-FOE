@@ -29,6 +29,32 @@ function updateAccessTokenFromResponse(response: Response) {
   }
 }
 
+// Centralized handler for auth errors. If the backend returns 401 or 403
+// dispatch a global event so the app can react (show login, clear state).
+function handleAuthError(response: Response) {
+  if (response.status === 401 || response.status === 403) {
+    try {
+      localStorage.removeItem("auth_token");
+    } catch (e) {
+      // ignore
+    }
+    // Dispatch a cross-window/custom event so React can listen and react.
+    try {
+      const ev = new CustomEvent("auth:logout", {
+        detail: { status: response.status },
+      });
+      window.dispatchEvent(ev);
+    } catch (e) {
+      // older browsers may not support CustomEvent constructor in some contexts
+      const event = document.createEvent("CustomEvent");
+      event.initCustomEvent("auth:logout", true, true, {
+        status: response.status,
+      });
+      window.dispatchEvent(event);
+    }
+  }
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -93,6 +119,7 @@ class ApiService {
         body: JSON.stringify(postBody),
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -116,6 +143,7 @@ class ApiService {
         body: JSON.stringify({ user_id: userId }),
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -153,6 +181,7 @@ class ApiService {
         }),
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -203,6 +232,7 @@ class ApiService {
         },
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -226,6 +256,7 @@ class ApiService {
         },
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -250,6 +281,7 @@ class ApiService {
         },
       });
       updateAccessTokenFromResponse(response);
+      handleAuthError(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

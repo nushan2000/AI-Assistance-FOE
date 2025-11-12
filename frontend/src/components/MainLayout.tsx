@@ -24,7 +24,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         onLogout={onLogout}
       />
       <main className="main-content-area" style={{ flex: 1 }}>
-        <Outlet />
+        {/* pass agents down to nested routes via Outlet context so children (eg Dashboard) can read allowed agents */}
+        <Outlet context={{ agents }} />
       </main>
     </div>
   );

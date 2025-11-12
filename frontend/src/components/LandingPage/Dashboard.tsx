@@ -1,4 +1,5 @@
 import React from "react";
+import { useOutletContext } from "react-router-dom";
 import QuickAccessCard from "./QuickAccessCard";
 import GuidanceAnalysisCard from "../GuidanceAnalysisCard/GuidanceAnalysisCard";
 import BookingAnalysisCard from "../BookingAnalysisCard/BookingAnalysisCard";
@@ -8,9 +9,13 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = () => {
+  // receive agents from MainLayout via Outlet context
+  const outletContext = useOutletContext<{ agents?: any[] } | undefined>();
+  const agents = outletContext?.agents;
+
   return (
     <div className="dashboard-section">
-      <QuickAccessCard />
+      <QuickAccessCard agents={agents} />
       <GuidanceAnalysisCard
         timesCalled={1234}
         dailyUsage={[12, 15, 9, 20, 18, 14, 10]}
