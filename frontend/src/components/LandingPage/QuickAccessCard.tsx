@@ -242,7 +242,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
   };
 
   return (
-    <Box sx={{ py: 2, px: 1, mx: "2rem" }}>
+    <Box sx={{ py: 2, px: 1, mx: "2rem", height: "100%", boxSizing: 'border-box' }}>
       <Grid container spacing={3}>
         {/* Quick Access Card */}
         <Grid size={{ xs: 12 }}>
@@ -253,6 +253,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
               p: 2,
               background: isDark ? "#2c3440" : "#f5f8fa",
               width: "100%",
+              height: "100%",
             }}
           >
             <CardContent>

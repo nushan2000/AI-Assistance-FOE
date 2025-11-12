@@ -10,4 +10,8 @@ router.post('/verify-otp', verifyOtp);
 router.post('/login', login);
 router.get('/me', authenticateToken, getMe);
 
+// Mount analytics routes under /auth/analytics
+const analyticsRoutes = require('./analytics');
+router.use('/analytics', analyticsRoutes);
+
 module.exports = router;

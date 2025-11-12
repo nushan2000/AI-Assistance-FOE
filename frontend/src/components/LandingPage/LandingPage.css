@@ -134,6 +134,43 @@
   min-height: 320px;
 }
 
+/* Top row on dashboard: quick access + usage calendar */
+.dashboard-top-cards {
+  display: flex;
+  gap: 0.1rem; /* slightly tighter gap between Quick Access and Usage */
+  align-items: flex-start; /* align both children to top */
+  margin-top: 1.5rem;
+  padding-right: 1.25rem; /* add a little breathing room from the right edge */
+}
+.quick-access-wrapper {
+  /* make quick access take roughly 2 parts of available space */
+  flex: 2 1 520px; /* grow 2, shrink 1, base 520px */
+  min-width: 360px;
+}
+.usage-card-wrapper {
+  /* usage card takes roughly 1 part so overall ratio ~2:1 */
+  flex: 1 1 320px;
+  min-width: 300px;
+  /* keep some space between the usage card and the right edge of the page */
+  margin-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* ensure internal card aligns to top */
+}
+
+/* Ensure quick-access content aligns to the top of its column */
+.quick-access-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+@media (max-width: 900px) {
+  .dashboard-top-cards {
+    flex-direction: column;
+  }
+}
+
 .feature-card {
   max-width: 400px;
   width: 100%;
@@ -584,4 +621,29 @@
 [data-theme="dark"] .sidebar-decor {
   /* placeholder to keep theme-specific hooks available for future customizations */
   --sidebar-decor-visible: 1;
+}
+
+/* Usage calendar day color classes */
+.usage-none .fc-daygrid-day-frame,
+.usage-none .fc-daygrid-day-top {
+  background: transparent !important;
+}
+.usage-light .fc-daygrid-day-frame,
+.usage-light .fc-daygrid-day-top {
+  background: linear-gradient(180deg, #fff8e6 0%, #fff1cc 100%) !important;
+}
+.usage-medium .fc-daygrid-day-frame,
+.usage-medium .fc-daygrid-day-top {
+  background: linear-gradient(180deg, #ffecd1 0%, #ffd39b 100%) !important;
+}
+.usage-dark .fc-daygrid-day-frame,
+.usage-dark .fc-daygrid-day-top {
+  background: linear-gradient(180deg, #f0d9b5 0%, #d9a76b 100%) !important;
+}
+
+/* Small badge styling appended into day cells by the component */
+.fc-daygrid-day > div > div > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

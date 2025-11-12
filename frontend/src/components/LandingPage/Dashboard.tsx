@@ -1,8 +1,13 @@
 import React from "react";
 import { useOutletContext } from "react-router-dom";
 import QuickAccessCard from "./QuickAccessCard";
+import Greeting from "./Greeting";
 import GuidanceAnalysisCard from "../GuidanceAnalysisCard/GuidanceAnalysisCard";
 import BookingAnalysisCard from "../BookingAnalysisCard/BookingAnalysisCard";
+import CalendarUsageMUI from "./CalendarUsageMUI";
+import { Card, CardContent, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { useTheme } from "../../context/ThemeContext";
 
 interface DashboardProps {
   // keep props for future use
@@ -13,9 +18,63 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const outletContext = useOutletContext<{ agents?: any[] } | undefined>();
   const agents = outletContext?.agents;
 
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
     <div className="dashboard-section">
-      <QuickAccessCard agents={agents} />
+      <div className="dashboard-top-cards">
+        <div
+          style={{
+            display: "flex",
+            gap: 1,
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+        >
+          <div style={{ flex: 2 }}>
+            <Greeting />
+            <div style={{ height: 12 }} />
+            <QuickAccessCard agents={agents} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="usage-card-wrapper">
+              <Card
+                elevation={4}
+                sx={{
+                  borderRadius: 5,
+                  p: 2,
+                  background: isDark ? "#2c3440" : "#f5f8fa",
+                  width: "100%",
+                }}
+              >
+                <CardContent
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 2,
+                      color: isDark ? "#eaf3ff" : "#1a2332",
+                    }}
+                  >
+                    Usage
+                  </Typography>
+                  <Box sx={{ flex: 1, overflowY: "auto", py: 0.5 }}>
+                    <CalendarUsageMUI />
+                  </Box>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
       <GuidanceAnalysisCard
         timesCalled={1234}
         dailyUsage={[12, 15, 9, 20, 18, 14, 10]}

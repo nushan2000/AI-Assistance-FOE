@@ -28,6 +28,8 @@ const { sendOtpEmail } = require('../services/mailService');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const UsageInterval = require('../models/UsageInterval');
+const DailyLogin = require('../models/DailyLogin');
 
 
 const otpStore = {}; // In-memory store for demo
@@ -150,6 +152,41 @@ exports.login = async (req, res) => {
         role: user.role
       }
     });
+    // record a single 'daily login' marker for today's date; only the first
+    // login of the day creates the document (unique index prevents duplicates)
+    try {
+      const now = new Date();
+      const dateKey = now.toISOString().slice(0, 10);
+      await DailyLogin.updateOne(
+        { userId: String(user._id), date: dateKey },
+        { $setOnInsert: { createdAt: now } },
+        { upsert: true }
+      );
+      // keep creating a UsageInterval too for backward compatibility / debugging
+      // but avoid creating multiple short 'login' intervals for the same day
+      try {
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0,0,0,0);
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23,59,59,999);
+
+        const existing = await UsageInterval.findOne({
+          userId: String(user._id),
+          start: { $gte: startOfDay, $lte: endOfDay }
+        }).lean();
+
+        if (!existing) {
+          const init = new UsageInterval({ userId: String(user._id), start: now, end: now });
+          await init.save();
+        } else {
+          // already have a usage interval today; skip creating another
+        }
+      } catch (err) {
+        console.error('failed to save initial usage interval on login', err);
+      }
+    } catch (err) {
+      console.error('failed to upsert daily login on login', err);
+    }
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error' });
