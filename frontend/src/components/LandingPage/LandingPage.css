@@ -46,7 +46,7 @@
   background: #fff;
 }
 .dark-theme .dashboard-tabs,
-[data-theme='dark'] .dashboard-tabs {
+[data-theme="dark"] .dashboard-tabs {
   background: #23272f;
 }
 .dashboard-tab-btn {
@@ -148,9 +148,10 @@
   transition: box-shadow 0.2s, transform 0.2s;
 }
 
-[data-theme='dark'] .feature-card, .dark-theme .feature-card {
+[data-theme="dark"] .feature-card,
+.dark-theme .feature-card {
   background: #23272f;
-  box-shadow: 0 8px 32px rgba(255,255,255,0.18);
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.18);
 }
 /* Quick Access Cards for Dashboard */
 .quick-access-cards {
@@ -162,7 +163,7 @@
 .quick-card {
   background: #fff;
   border-radius: 1.2rem;
-  box-shadow: 0 4px 24px rgba(90, 50, 50, 0.10);
+  box-shadow: 0 4px 24px rgba(90, 50, 50, 0.1);
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -184,7 +185,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1.2rem;
-  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.10);
+  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.1);
 }
 .quick-card-img {
   width: 56px;
@@ -196,7 +197,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: #5A3232;
+  color: #5a3232;
   text-align: center;
 }
 .quick-card-sub {
@@ -218,31 +219,37 @@
     gap: 1.5rem;
   }
 }
-[data-theme='dark'] .quick-card, .dark-theme .quick-card {
+[data-theme="dark"] .quick-card,
+.dark-theme .quick-card {
   background: #23272f;
-  box-shadow: 0 4px 24px rgba(255,255,255,0.10);
+  box-shadow: 0 4px 24px rgba(255, 255, 255, 0.1);
 }
-[data-theme='dark'] .quick-card-img-wrap, .dark-theme .quick-card-img-wrap {
+[data-theme="dark"] .quick-card-img-wrap,
+.dark-theme .quick-card-img-wrap {
   background: #181a20;
-  box-shadow: 0 2px 12px rgba(255,255,255,0.10);
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
 }
-[data-theme='dark'] .quick-card-title, .dark-theme .quick-card-title {
+[data-theme="dark"] .quick-card-title,
+.dark-theme .quick-card-title {
   color: #ffd700;
 }
-[data-theme='dark'] .quick-card-sub, .dark-theme .quick-card-sub {
+[data-theme="dark"] .quick-card-sub,
+.dark-theme .quick-card-sub {
   color: #e0baba;
 }
-[data-theme='dark'] .quick-card-desc, .dark-theme .quick-card-desc {
+[data-theme="dark"] .quick-card-desc,
+.dark-theme .quick-card-desc {
   color: #f4f6fa;
 }
-  
+
 /* Basic professional layout for LandingPage sidebar and main content */
 .landing-page-container {
   position: relative;
   min-height: 100vh;
   background: #f4f6fa;
 }
-[data-theme='dark'] .landing-page-container, .dark-theme .landing-page-container {
+[data-theme="dark"] .landing-page-container,
+.dark-theme .landing-page-container {
   background: #181a20;
 }
 .sidebar-landing {
@@ -259,11 +266,13 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem 1.5rem 1.5rem 1.5rem;
-  box-shadow: 0 4px 24px rgba(90, 50, 50, 0.18), 0 1.5px 8px rgba(30,30,30,0.10);
+  box-shadow: 0 4px 24px rgba(90, 50, 50, 0.18),
+    0 1.5px 8px rgba(30, 30, 30, 0.1);
 }
 .dark-theme .sidebar-landing,
-[data-theme='dark'] .sidebar-landing {
-  box-shadow: 0 4px 24px rgba(220,220,220,0.18), 0 1.5px 8px rgba(200,200,200,0.10);
+[data-theme="dark"] .sidebar-landing {
+  box-shadow: 0 4px 24px rgba(220, 220, 220, 0.18),
+    0 1.5px 8px rgba(200, 200, 200, 0.1);
 }
 
 .sidebar-landing.collapsed {
@@ -276,8 +285,8 @@
   top: 0;
   right: 0;
   min-height: 100vh;
-  transition: left 0.3s cubic-bezier(0.4,0,0.2,1);
-  
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
   z-index: 20;
   overflow-x: hidden;
 }
@@ -303,11 +312,12 @@
   border-radius: 50%;
   transition: background 0.2s, color 0.2s;
 }
-[data-theme='dark'] .sidebar-collapse-btn, .dark-theme .sidebar-collapse-btn {
+[data-theme="dark"] .sidebar-collapse-btn,
+.dark-theme .sidebar-collapse-btn {
   color: #f4f6fa;
 }
 .sidebar-collapse-btn:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 .sidebar-landing.collapsed .sidebar-logo {
   display: none;
@@ -328,14 +338,15 @@
   width: 60px;
   /* border-radius: 12px; */
   background: #fff;
-  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.20);
+  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.2);
   /* padding: 0.5rem; */
   display: block;
   margin: 0 auto 1.5rem auto;
 }
-[data-theme='dark'] .sidebar-logo img, .dark-theme .sidebar-logo img {
+[data-theme="dark"] .sidebar-logo img,
+.dark-theme .sidebar-logo img {
   background: #23272f;
-  box-shadow: 0 2px 12px rgba(255,255,255,0.20);
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.2);
 }
 /* Sidebar navigation vertical layout */
 .sidebar-nav {
@@ -363,26 +374,30 @@
   align-items: center;
   gap: 0.5rem;
 }
-[data-theme='dark'] .sidebar-nav button, .dark-theme .sidebar-nav button {
+[data-theme="dark"] .sidebar-nav button,
+.dark-theme .sidebar-nav button {
   color: #f4f6fa;
 }
-.sidebar-nav button.active, .sidebar-nav button:hover {
+.sidebar-nav button.active,
+.sidebar-nav button:hover {
   background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
   color: #8a5c5c;
-  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.10);
+  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.1);
 }
-[data-theme='dark'] .sidebar-nav button.active, [data-theme='dark'] .sidebar-nav button:hover,
-.dark-theme .sidebar-nav button.active, .dark-theme .sidebar-nav button:hover {
+[data-theme="dark"] .sidebar-nav button.active,
+[data-theme="dark"] .sidebar-nav button:hover,
+.dark-theme .sidebar-nav button.active,
+.dark-theme .sidebar-nav button:hover {
   background: linear-gradient(90deg, #23272f 0%, #181a20 100%);
   color: #8a5c5c;
-  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.10);
+  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.1);
 }
 .sidebar-nav button.active svg,
 .sidebar-nav button:hover svg {
   color: #8a5c5c;
 }
-[data-theme='dark'] .sidebar-nav button.active svg,
-[data-theme='dark'] .sidebar-nav button:hover svg,
+[data-theme="dark"] .sidebar-nav button.active svg,
+[data-theme="dark"] .sidebar-nav button:hover svg,
 .dark-theme .sidebar-nav button.active svg,
 .dark-theme .sidebar-nav button:hover svg {
   color: #8a5c5c;
@@ -395,7 +410,8 @@
   padding-top: 1.5rem;
   border-top: 1px solid #e9ecef;
 }
-[data-theme='dark'] .sidebar-logout, .dark-theme .sidebar-logout {
+[data-theme="dark"] .sidebar-logout,
+.dark-theme .sidebar-logout {
   border-top: 1px solid #23272f;
 }
 .sidebar-logout button {
@@ -408,9 +424,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.10);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.1);
 }
-[data-theme='dark'] .sidebar-logout button, .dark-theme .sidebar-logout button {
+[data-theme="dark"] .sidebar-logout button,
+.dark-theme .sidebar-logout button {
   background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(231, 76, 60, 0.18);
@@ -419,7 +436,8 @@
   background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
   box-shadow: 0 4px 16px rgba(231, 76, 60, 0.18);
 }
-[data-theme='dark'] .sidebar-logout button:hover, .dark-theme .sidebar-logout button:hover {
+[data-theme="dark"] .sidebar-logout button:hover,
+.dark-theme .sidebar-logout button:hover {
   background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
   box-shadow: 0 4px 16px rgba(231, 76, 60, 0.28);
 }
@@ -432,10 +450,13 @@
   overflow-y: auto;
   height: 100vh;
 }
-[data-theme='dark'] .main-content-area, .dark-theme .main-content-area {
+[data-theme="dark"] .main-content-area,
+.dark-theme .main-content-area {
   background: #23272f;
 }
-.dashboard-section, .documentation-section, .profile-section {
+.dashboard-section,
+.documentation-section,
+.profile-section {
   /* max-width: 900px; */
   margin: 0 auto;
 }
@@ -448,7 +469,7 @@
 .agent-card {
   background: #f8f9fa;
   border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 1.5rem;
   width: 220px;
   display: flex;
@@ -467,18 +488,100 @@
   border-radius: 1rem;
   padding: 1.5rem;
   margin-top: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
-[data-theme='dark'] .profile-details, .dark-theme .profile-details {
+[data-theme="dark"] .profile-details,
+.dark-theme .profile-details {
   background: #23272f;
-  box-shadow: 0 2px 8px rgba(20,20,20,0.10);
+  box-shadow: 0 2px 8px rgba(20, 20, 20, 0.1);
 }
 .profile-details div {
   margin-bottom: 1rem;
   font-size: 1.05rem;
 }
-[data-theme='dark'] .sidebar-landing, .dark-theme .sidebar-landing {
+[data-theme="dark"] .sidebar-landing,
+.dark-theme .sidebar-landing {
   background: #181a20 !important;
   color: #f4f6fa !important;
-  box-shadow: 0 4px 24px rgba(30,30,30,0.28), 0 1.5px 8px rgba(0,0,0,0.18) !important;
+  box-shadow: 0 4px 24px rgba(30, 30, 30, 0.28), 0 1.5px 8px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Decorative image at the bottom-left of the sidebar (non-interactive)
+   The user provided a prepared raster: /public/sidebar_waves.png
+   We render that image and hide it when the sidebar is collapsed. */
+.sidebar-decor {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden; /* ensure waves don't overflow the sidebar when resized */
+}
+
+/* hide decorations when collapsed */
+.sidebar-landing.collapsed .sidebar-decor {
+  display: none !important;
+}
+
+.sidebar-waves-img {
+  width: 100%;
+  max-width: 260px; /* match sidebar width */
+  height: auto;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.sidebar-decor-collapsed {
+  /* legacy helper: hidden by default, made visible only when sidebar is collapsed */
+  display: none;
+}
+
+/* Show a small, well-sized decoration when the sidebar is collapsed. This
+   targets the collapsed helper that's rendered by the React component. */
+.sidebar-landing.collapsed .sidebar-decor-collapsed {
+  display: block !important;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 80px; /* match collapsed sidebar width */
+  height: 96px; /* small container height so the image has room */
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Style for the small collapsed image variant */
+.sidebar-waves-img-collapsed {
+  /* collapsed image fills collapsed sidebar width */
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Force-hide the full-size decorative image (used in expanded mode) when collapsed */
+.sidebar-landing.collapsed .sidebar-waves-img {
+  display: none !important;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+}
+
+/* keep previous theme variable placeholders in case other rules rely on them */
+.light-theme .sidebar-decor {
+  /* placeholder to keep theme-specific hooks available for future customizations */
+  --sidebar-decor-visible: 1;
+}
+.dark-theme .sidebar-decor,
+[data-theme="dark"] .sidebar-decor {
+  /* placeholder to keep theme-specific hooks available for future customizations */
+  --sidebar-decor-visible: 1;
 }

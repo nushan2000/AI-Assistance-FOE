@@ -334,6 +334,31 @@ const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         )}
+        {/* Decorative wave SVGs in the bottom-left corner of the sidebar */}
+        {!collapsed && (
+          <div className="sidebar-decor" aria-hidden="true">
+            <img
+              src="/sidebar_waves.png"
+              alt=""
+              className="sidebar-waves-img"
+              aria-hidden="true"
+              style={{ opacity: 0.9 }}
+            />
+          </div>
+        )}
+
+        {collapsed && (
+          <div className="sidebar-decor-collapsed" aria-hidden="true">
+            {/* Use prepared image placed in public/sidebar_waves_collapsed.png */}
+            <img
+              src="/sidebar_waves_collapsed.png"
+              alt=""
+              className="sidebar-waves-img-collapsed"
+              aria-hidden="true"
+              style={{ opacity: 0.9 }}
+            />
+          </div>
+        )}
       </aside>
     </>
   );
