@@ -614,7 +614,7 @@ const BookingChatInterface: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/booking/add`,
+        `${process.env.REACT_APP_HBA_URL}/booking/add`,
         formData
       );
 
@@ -629,7 +629,7 @@ const BookingChatInterface: React.FC = () => {
 
     try {
       const response = await axios.delete(
-        `http://127.0.0.1:8000/booking/delete`,
+        `${process.env.REACT_APP_HBA_URL}/booking/delete`,
         {
           data: { booking_id: bookingId },
           headers: {
@@ -665,7 +665,7 @@ const BookingChatInterface: React.FC = () => {
    
 
       const response = await axios.put(
-        `http://127.0.0.1:8000/booking/update_booking`,
+        `${process.env.REACT_APP_HBA_URL}/booking/update_booking`,
         {
           booking_id: bookingId,
           ...updatedData,
@@ -701,7 +701,7 @@ const BookingChatInterface: React.FC = () => {
 
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/booking/fetch_booking_by_id`,
+        `${process.env.REACT_APP_HBA_URL}/booking/fetch_booking_by_id`,
         {
           params: { booking_id: calendarCellInfo.id },
         }
@@ -730,7 +730,7 @@ const fetch_moduleCodes_by_user_email = async (email: string) => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_moduleCodes_by_user_email?email=${email}`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/fetch_moduleCodes_by_user_email?email=${email}`);
     setModuleOptions(response.data);
     return response.data;
   } catch (error) {
@@ -744,7 +744,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`);
     setSelectedRoomOptions(response.data);
     return response.data;
   } catch (error) {
@@ -786,7 +786,7 @@ const create_swap_request = async () => {
   // console.log("userID:", userID);
 
   try {
-    const response = await axios.post(`http://127.0.0.1:8000/swap/request`, {
+    const response = await axios.post(process.env.REACT_APP_HBA_URL + `/swap/request`, {
       requested_by_email: email,
       requested_booking_id: swapData.id,
       offered_booking_id: Number(calendarCellInfo.id)
@@ -803,7 +803,7 @@ const create_swap_request = async () => {
 //complete this function add aufill section
 const fetch_booking_by_date_and_roomId = async (date: string, roomId: number) => {
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/bookings/by-date/${date}/${roomId}`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/bookings/by-date/${date}/${roomId}`);
     return response.data;
   } catch (error) {
     // toast.error("❌ Failed to fetch booking");

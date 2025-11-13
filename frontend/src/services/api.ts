@@ -5,7 +5,7 @@ export async function fetchUserEmailFromProfile(): Promise<string | null> {
   const token = getAccessToken();
   if (!token) return null;
   try {
-    const response = await fetch('http://localhost:5000/auth/me', {
+    const response = await fetch(process.env.REACT_APP_AUTH_URL + '/auth/me', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

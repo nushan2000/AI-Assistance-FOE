@@ -46,7 +46,7 @@ const App: React.FC = () => {
         return;
       }
       try {
-        const response = await fetch('http://localhost:5000/auth/me', {
+        const response = await fetch(process.env.REACT_APP_AUTH_URL + '/auth/me', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -97,7 +97,7 @@ const App: React.FC = () => {
                   const authToken = localStorage.getItem('auth_token');
                   if (!authToken) return;
                   try {
-                    const response = await fetch('http://localhost:5000/auth/me', {
+                    const response = await fetch(process.env.REACT_APP_AUTH_URL + '/auth/me', {
                       method: 'GET',
                       headers: {
                         'Authorization': `Bearer ${authToken}`,

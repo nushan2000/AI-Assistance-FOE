@@ -160,7 +160,7 @@ export default function PlannerScreen() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/upload",
+        process.env.REACT_APP_PLANNER_URL + "/api/upload",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -184,7 +184,7 @@ export default function PlannerScreen() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/uploadExam",
+        process.env.REACT_APP_PLANNER_URL + "/api/uploadExam",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -202,7 +202,7 @@ export default function PlannerScreen() {
   const getCalenderData = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/solver-results"
+        process.env.REACT_APP_PLANNER_URL + "/api/solver-results"
       );
       const data = response.data || [];
 

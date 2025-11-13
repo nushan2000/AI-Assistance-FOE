@@ -163,7 +163,7 @@ export default function ExamTimeTable() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/uploadExam",
+        process.env.REACT_APP_PLANNER_URL + "/api/uploadExam",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -181,7 +181,7 @@ export default function ExamTimeTable() {
   const getCalenderData = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/solver-exam-results"
+        process.env.REACT_APP_PLANNER_URL + "/api/solver-exam-results"
       );
       const data = response.data || [];
 
