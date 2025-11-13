@@ -54,7 +54,7 @@ const [email, setEmail] = React.useState<string | null>(null);
   }, []);
 
   const fetchSwapRequests = async () => {
-    const response=await axios.get(`http://127.0.0.1:8000/swap/get_all_requests`);
+    const response=await axios.get(`${process.env.REACT_APP_HBA_URL}/swap/get_all_requests`);
     const filteredRequests = response.data.filter((req: SwapRequest) => req.requester_email === email || req.offerer_email === email);
     setRequests(filteredRequests);
     console.log("data",filteredRequests);
@@ -81,7 +81,7 @@ const [email, setEmail] = React.useState<string | null>(null);
 
     alert(`Swapped request ID: ${id}`);
     const response = await axios.post(
-      `http://127.0.0.1:8000/swap/respond?swap_id=${id}&response=approved`
+      `${process.env.REACT_APP_HBA_URL}/swap/respond?swap_id=${id}&response=approved`
     )
 
     
@@ -106,7 +106,7 @@ console.log("id",id);
 
       // Call the swap respond API with 'rejected' status
       const response = await axios.post(
-  `http://127.0.0.1:8000/swap/respond?swap_id=${id}&response=rejected`
+  `${process.env.REACT_APP_HBA_URL}/swap/respond?swap_id=${id}&response=rejected`
 );
 
 

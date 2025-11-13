@@ -82,7 +82,7 @@ const [formData, setFormData] = useState({
     const apiUrl = process.env.REACT_APP_API_URL;
 
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/fetch_bookings?room_name=${selectedRoom}`);
+      const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/fetch_bookings?room_name=${selectedRoom}`);
       const bookings = response.data;
 
       const events = bookings.map((booking:any, index:number) => ({
@@ -105,7 +105,7 @@ const createBooking = async () => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.post(`http://127.0.0.1:8000/booking/add`, formData);
+    const response = await axios.post(`${process.env.REACT_APP_HBA_URL}/booking/add`, formData);
     notify('success', "✅ Booking created successfully!");
     console.log("✅ Booking created:", response.data);
 
@@ -158,7 +158,7 @@ const fetch_moduleCodes = async (email: string) => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_moduleCodes_by_user_email?email=${email}`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/fetch_moduleCodes_by_user_email?email=${email}`);
     setModuleOptions(response.data);
     return response.data;
   } catch (error:any) {
@@ -172,7 +172,7 @@ const fetch_all_halls = async () => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/all_halls`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/all_halls`);
     setRoomOptions(response.data);
     return response.data;
   } catch (error:any) {
@@ -186,7 +186,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`);
+    const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`);
     setSelectedRoomOptions(response.data);
     return response.data;
   } catch (error) {
