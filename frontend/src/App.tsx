@@ -10,11 +10,17 @@ import ChatInterface from "./components/GuidanceAgent/ChatInterface";
 import BookingChatInterface from "./components/BookingAgent/BookingChatInterface";
 import PlannerChatInterface from "./components/PlannerAgent/PlannerChatInterface";
 import GlobalLoader from "./components/GlobalLoader/GlobalLoader";
-import { NotificationProvider } from "./context/NotificationContext";
+import {
+  NotificationProvider,
+  useNotification,
+} from "./context/NotificationContext";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import Dashboard from "./components/LandingPage/Dashboard";
+import DocumentationSection from "./components/Documentation/DocumentationSection";
+import UserProfile from "./components/UserProfile/UserProfile";
 import { Navigate } from "react-router-dom";
-import { agentCardData } from "./utils/AgentCardData";
+import { getAllowedAgents } from "./utils/roleUtils";
 // const HomePage = require('./components/HomePage/HomePage').default;
 //     const { Router } = require('react-router-dom');
 
@@ -36,7 +42,8 @@ const App: React.FC = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const agents = agentCardData;
+  // agentCardData is available but we compute allowedAgents per-user below
+  const allowedAgents = getAllowedAgents(userProfile?.email);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -83,6 +90,36 @@ const App: React.FC = () => {
     setIsAuthenticated(false);
     setUserProfile(null);
   }
+
+  // Component mounted inside the authenticated area to listen for global auth logout events
+  const AuthLogoutListener: React.FC = () => {
+    const { notify } = useNotification();
+    const navigate = useNavigate();
+
+    React.useEffect(() => {
+      const handler = (e: any) => {
+        // Clear client state
+        handleLogout();
+        try {
+          notify("error", "Session expired", "Please sign in again.");
+        } catch (err) {
+          // ignore if notification not available
+        }
+        // Navigate to home/login page
+        try {
+          navigate("/");
+        } catch (err) {
+          // fallback to full reload
+          window.location.href = "/";
+        }
+      };
+      window.addEventListener("auth:logout", handler as EventListener);
+      return () =>
+        window.removeEventListener("auth:logout", handler as EventListener);
+    }, [navigate, notify]);
+
+    return null;
+  };
 
   if (!authChecked) {
     return null; // Or a loading spinner
@@ -135,6 +172,7 @@ const App: React.FC = () => {
       <GlobalLoaderProvider>
         <NotificationProvider>
           <Router>
+            <AuthLogoutListener />
             <LoaderOnRouteChange />
             <Routes>
               <Route
@@ -142,16 +180,42 @@ const App: React.FC = () => {
                 element={
                   <MainLayout
                     userProfile={userProfile}
-                    agents={agents}
+                    agents={allowedAgents}
                     onLogout={handleLogout}
                   />
                 }
               >
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route
+                  path="documentation"
+                  element={<DocumentationSection />}
+                />
+                <Route
+                  path="profile"
+                  element={<UserProfile userProfile={userProfile} />}
+                />
                 <Route path="guidance-chat" element={<ChatInterface />} />
-                <Route path="booking-chat" element={<BookingChatInterface />} />
-                <Route path="planner-chat" element={<PlannerChatInterface />} />
+                <Route
+                  path="booking-chat"
+                  element={
+                    allowedAgents.some((a) => a.id === "booking") ? (
+                      <BookingChatInterface />
+                    ) : (
+                      <Navigate to="guidance-chat" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="planner-chat"
+                  element={
+                    allowedAgents.some((a) => a.id === "planner") ? (
+                      <PlannerChatInterface />
+                    ) : (
+                      <Navigate to="guidance-chat" replace />
+                    )
+                  }
+                />
               </Route>
             </Routes>
           </Router>
