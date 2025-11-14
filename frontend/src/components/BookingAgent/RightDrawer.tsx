@@ -1,17 +1,17 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
-import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
-import IconButton from "@mui/material/IconButton";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import CancelIcon from "@mui/icons-material/Cancel";
 import CloseIcon from "@mui/icons-material/Close";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+// import CancelIcon from "@mui/icons-material/Cancel";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
+import { useTheme } from "../../context/ThemeContext";
 
 type SwapRequest = {
   id: number;
@@ -23,6 +23,9 @@ type SwapRequest = {
 
 export default function RightDrawer() {
   const [open, setOpen] = React.useState(false);
+
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   // Example data
   const [requests, setRequests] = React.useState<SwapRequest[]>([
@@ -77,57 +80,61 @@ export default function RightDrawer() {
 
   const list = () => (
     <Box
+      className="right-drawer-inner"
       sx={{ width: 400, p: 2 }}
       role="presentation"
       onKeyDown={toggleDrawer(false)}
     >
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="h6">Swap Requests</Typography>
-        <IconButton onClick={toggleDrawer(false)}>
+      <Box className="right-drawer-header" mb={2}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* <SwapHorizIcon /> */}
+          <Box>
+            <Typography variant="h6">Swap Requests</Typography>
+            <Typography variant="caption">{requests.length} open</Typography>
+          </Box>
+        </Box>
+        <Button onClick={toggleDrawer(false)} aria-label="Close drawer">
           <CloseIcon />
-        </IconButton>
+        </Button>
       </Box>
       <Divider />
-      <List>
+      <List className="swap-list">
         {requests.map((req) => (
-          <ListItem key={req.id} sx={{ mb: 1 }} divider>
-            <ListItemText
-              primary={req.message}
-              secondary={req.isSender ? `To: ${req.to}` : `From: ${req.from}`}
-            />
-            <ListItemSecondaryAction>
+          <ListItem key={req.id} className="swap-item" divider>
+            <div className="meta">
+              <div className="name-tag">
+                {req.isSender ? `To: ${req.to}` : `From: ${req.from}`}
+              </div>
+              <div className="primary">{req.message}</div>
+            </div>
+            <div className="swap-actions">
               {req.isSender ? (
                 <IconButton
-                  edge="end"
-                  color="error"
+                  className="swap-icon-btn danger"
                   onClick={() => handleCancel(req.id)}
+                  aria-label="Cancel request"
                 >
-                  <CancelIcon />
+                  <CloseIcon />
                 </IconButton>
               ) : (
                 <>
                   <IconButton
-                    edge="end"
-                    color="primary"
+                    className="swap-icon-btn primary"
                     onClick={() => handleSwap(req.id)}
+                    aria-label="Accept swap"
                   >
                     <SwapHorizIcon />
                   </IconButton>
                   <IconButton
-                    edge="end"
-                    color="error"
+                    className="swap-icon-btn danger"
                     onClick={() => handleReject(req.id)}
+                    aria-label="Reject request"
                   >
-                    <CancelIcon />
+                    <CloseIcon />
                   </IconButton>
                 </>
               )}
-            </ListItemSecondaryAction>
+            </div>
           </ListItem>
         ))}
       </List>
@@ -145,7 +152,15 @@ export default function RightDrawer() {
       >
         Open Swap Requests
       </Button>
-      <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={toggleDrawer(false)}
+        PaperProps={{
+          className: "right-drawer-paper",
+          "data-theme": isDark ? "dark" : "light",
+        }}
+      >
         {list()}
       </Drawer>
     </div>

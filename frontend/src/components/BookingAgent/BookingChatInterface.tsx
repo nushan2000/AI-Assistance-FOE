@@ -1018,6 +1018,14 @@ const BookingChatInterface: React.FC = () => {
         onClose={() => setIsOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          className: `booking-dialog-paper`,
+          style: {
+            background: "transparent",
+            color: "var(--dialog-text)",
+          },
+          "data-theme": theme ? "dark" : "light",
+        }}
       >
         <DialogTitle>Update Booking</DialogTitle>
         <DialogContent>
@@ -1113,6 +1121,16 @@ const BookingChatInterface: React.FC = () => {
         onClose={() => setIsSwap(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          className: `booking-dialog-paper ${
+            theme === "dark" ? "dark" : "light"
+          }`,
+          style: {
+            background: theme === "dark" ? " #23232b" : " #ffffff",
+            color: theme === "dark" ? "#f3f3f3" : " #222222",
+          },
+          "data-theme": theme,
+        }}
       >
         <DialogTitle>Swap Booking</DialogTitle>
         <DialogContent>

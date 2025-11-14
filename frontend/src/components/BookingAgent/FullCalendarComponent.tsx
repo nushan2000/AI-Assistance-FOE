@@ -426,7 +426,7 @@
 
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState, lazy, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import "./FullCalendarTheme.css";
 import axios from "axios";
 import { useNotification } from "../../context/NotificationContext";
@@ -449,6 +449,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { fetchUserEmailFromProfile } from "../../services/api";
 import { toast } from "react-toastify";
 import RightDrawer from "./RightDrawer";
+// import AddBoxIcon from "@mui/icons-material/AddBox";
 
 interface Props {
   refreshKey?: any;
@@ -593,7 +594,6 @@ const FullCalendarComponent: React.FC<Props> = ({
       return;
     }
     createBooking();
-    setIsOpen(false);
   };
 
   const fetch_moduleCodes = async (email: string) => {
@@ -603,7 +603,9 @@ const FullCalendarComponent: React.FC<Props> = ({
       );
       setModuleOptions(response.data);
     } catch (error) {
-      toast.error("❌ Failed to fetch module codes");
+      toast.error("❌ Failed to fetch module codes", {
+        toastId: "err-fetch-module-codes",
+      });
     }
   };
 
@@ -614,7 +616,7 @@ const FullCalendarComponent: React.FC<Props> = ({
       );
       setRoomOptions(response.data);
     } catch (error) {
-      toast.error("❌ Failed to fetch halls");
+      toast.error("❌ Failed to fetch halls", { toastId: "err-fetch-halls" });
     }
   };
 
@@ -625,7 +627,9 @@ const FullCalendarComponent: React.FC<Props> = ({
       );
       setSelectedRoomOptions(response.data);
     } catch (error) {
-      toast.error("❌ Failed to fetch halls by module");
+      toast.error("❌ Failed to fetch halls by module", {
+        toastId: "err-fetch-halls-by-module",
+      });
     }
   };
 
@@ -741,9 +745,16 @@ const FullCalendarComponent: React.FC<Props> = ({
         open={isOpen}
         onClose={() => setIsOpen(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth="xs"
       >
-        <DialogTitle>Create New Booking</DialogTitle>
+        <DialogTitle>
+          <div className="booking-dialog-title">
+            {/* <div className="title-icon">
+              <AddBoxIcon fontSize="large" />
+            </div> */}
+            <div className="title-text">Create New Booking</div>
+          </div>
+        </DialogTitle>
         <DialogContent>
           <Box mb={2}>
             <p>*Select module code first</p>
@@ -815,7 +826,11 @@ const FullCalendarComponent: React.FC<Props> = ({
 
         <DialogActions>
           <Button onClick={() => setIsOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreate} variant="contained">
+          <Button
+            onClick={handleCreate}
+            variant="contained"
+            className="btn-green"
+          >
             Create
           </Button>
         </DialogActions>
