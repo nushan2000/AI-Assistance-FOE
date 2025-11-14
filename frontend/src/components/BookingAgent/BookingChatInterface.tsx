@@ -17,7 +17,7 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import { useNotification } from '../../context/NotificationContext';
+import { useNotification } from "../../context/NotificationContext";
 import { fetchUserEmailFromProfile } from "../../services/api";
 import { fetchUserProfile } from "../../services/userAPI";
 import { ToastContainer, toast } from "react-toastify";
@@ -69,7 +69,7 @@ const BookingChatInterface: React.FC = () => {
   const [moduleCode, setModuleCode] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     room_name: "LT1",
-    name:"",
+    name: "",
     room_id: Number(0),
     // module_code: '',
     date: "",
@@ -85,7 +85,7 @@ const BookingChatInterface: React.FC = () => {
 
   const [refreshCalendar, setRefreshCalendar] = useState(0);
   const [calendarCellInfo, setCalendarCellInfo] = useState<any>(null);
-const [email, setEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const getEmail = async () => {
@@ -93,8 +93,6 @@ const [email, setEmail] = useState<string | null>(null);
       setEmail(userEmail);
     };
     getEmail();
-   
-    
   }, []);
   // Called when chat updates
   const handleChatUpdate = () => {
@@ -213,7 +211,6 @@ const [email, setEmail] = useState<string | null>(null);
       let errorMessage = "Failed to book the room. Please try again.";
 
       if (axios.isAxiosError(err) && err.response) {
-
         if (err.response.data?.detail) {
           if (typeof err.response.data.detail === "string") {
             errorMessage = `❌ ${err.response.data.detail}`;
@@ -516,7 +513,6 @@ const [email, setEmail] = useState<string | null>(null);
       console.error("API Error:", err);
 
       if (axios.isAxiosError(err) && err.response) {
-
         if (
           err.response.data?.detail &&
           typeof err.response.data.detail === "object"
@@ -589,7 +585,6 @@ const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    
   }, [messages]);
 
   const createBooking = async () => {
@@ -602,8 +597,7 @@ const [email, setEmail] = useState<string | null>(null);
       );
 
       // Optionally, refresh the calendar or show a success message
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const deleteBooking = async (bookingId: number) => {
@@ -616,38 +610,41 @@ const [email, setEmail] = useState<string | null>(null);
           data: { booking_id: bookingId },
         }
       );
-handleChatUpdate();
+      handleChatUpdate();
       // Optionally, refresh the calendar or show a success message
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
- const updateBooking = async (bookingId: number, updatedData: any) => {
-  try {
-    // ✅ Normalize date to YYYY-MM-DD
-    let formattedDate = updatedData.date;
-    if (formattedDate) {
-      formattedDate = new Date(formattedDate).toISOString().split("T")[0]; 
-      // e.g. "2025-08-18T09:38:40" → "2025-08-18"
-    }
-
-    const response = await axios.put(
-      `http://127.0.0.1:8000/booking/update_booking`,
-      {
-        booking_id: bookingId,
-        ...updatedData,
-        date: formattedDate, // 👈 send normalized date
+  const updateBooking = async (bookingId: number, updatedData: any) => {
+    try {
+      // ✅ Normalize date to YYYY-MM-DD
+      let formattedDate = updatedData.date;
+      if (formattedDate) {
+        formattedDate = new Date(formattedDate).toISOString().split("T")[0];
+        // e.g. "2025-08-18T09:38:40" → "2025-08-18"
       }
-    );
-    notify('success', "✅ Booking updated successfully!");
-    console.log("✅ Booking updated:", response.data);
-    handleChatUpdate();
-  } catch (error:any) {
-    notify('error', `❌ Failed to update booking: ${error.response?.data?.message || error.message}`);
-    console.error("❌ Error updating booking:", error);
-  }
-};
 
+      const response = await axios.put(
+        `http://127.0.0.1:8000/booking/update_booking`,
+        {
+          booking_id: bookingId,
+          ...updatedData,
+          date: formattedDate, // 👈 send normalized date
+        }
+      );
+      notify("success", "✅ Booking updated successfully!");
+      console.log("✅ Booking updated:", response.data);
+      handleChatUpdate();
+    } catch (error: any) {
+      notify(
+        "error",
+        `❌ Failed to update booking: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      console.error("❌ Error updating booking:", error);
+    }
+  };
 
   const fetchBookingById = async (bookingId: number) => {
     const apiUrl = process.env.REACT_APP_API_URL;
@@ -660,130 +657,154 @@ handleChatUpdate();
         }
       );
       console.log("Fetched booking details:", response.data);
-      
+
       setFormData({
         room_name: response.data.room_name,
-        name:response.data.name,
+        name: response.data.name,
         room_id: response.data.room_id,
         // module_code: response.data.module_code,
         date: response.data.timestamp,
         start_time: response.data.start_time,
         end_time: response.data.end_time,
       });
-      if(email)
-      fetch_moduleCodes_by_user_email(email);
-    fetch_halls_by_moduleCode(response.data.name);
+      if (email) fetch_moduleCodes_by_user_email(email);
+      fetch_halls_by_moduleCode(response.data.name);
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
-      toast.error("❌ Failed to fetch booking details");
+      toast.error("❌ Failed to fetch booking details", {
+        toastId: "err-fetch-booking-details",
+      });
       console.error("❌ Error fetching booking:", error);
     }
   };
-const fetch_moduleCodes_by_user_email = async (email: string) => {
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const fetch_moduleCodes_by_user_email = async (email: string) => {
+    const apiUrl = process.env.REACT_APP_API_URL;
 
-  try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_moduleCodes_by_user_email?email=${email}`);
-    setModuleOptions(response.data);
-    return response.data;
-  } catch (error) {
-    toast.error("❌ Failed to fetch module codes");
-    console.error("❌ Error fetching module codes:", error);
-    return [];
-  }
-};
-
-const fetch_halls_by_moduleCode = async (moduleCode: string) => {
-  const apiUrl = process.env.REACT_APP_API_URL;
-
-  try {
-    const response = await axios.get(`http://127.0.0.1:8000/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`);
-    setSelectedRoomOptions(response.data);
-    return response.data;
-  } catch (error) {
-    toast.error("❌ Failed to fetch halls");
-    console.error("❌ Error fetching halls:", error);
-    return [];
-  }
-};
-useEffect(() => {
-  if (calendarCellInfo) {
-    fetchBookingById(calendarCellInfo.id);
-    // fetch_user_id();
-    if(email)
-    fetch_moduleCodes_by_user_email(email)
-  }
-}, [calendarCellInfo]);
-
-// const [userID, setUserID] = useState<number | null>(null);
-// const fetch_user_id = async () => {
-//   try {
-//     const response=await axios.get(`http://127.0.0.1:8000/fetch_user_profile_by_email/${email}`);
-//     setUserID(response.data.id);
-//   } catch (error) {
-//     console.error("Error fetching user ID:", error);
-//   }
-// };
-
-
-const [bookingOptions, setBookingOptions] = React.useState<{code: string; time: string; id: number}[]>([]);
-const [swapData, setSwapData] = useState<{date: string; name: string; start_time: string; end_time: string; id: number}>({
-  date: "",
-  name: "",
-  id: 0,
-  start_time: "",
-  end_time: ""
-});
-const create_swap_request = async () => {
-  console.log("Swap Data", swapData);
-  // console.log("userID:", userID);
-
-  try {
-    const response = await axios.post(`http://127.0.0.1:8000/swap/request`, {
-      requested_by_email: email,
-      requested_booking_id: swapData.id,
-      offered_booking_id: Number(calendarCellInfo.id)
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error creating swap request:", error);
-    throw error;
-  }
-};
-
-//complete this function add aufill section
-const fetch_booking_by_date_and_roomId = async (date: string, roomId: number) => {
-  try {
-    const response = await axios.get(`http://127.0.0.1:8000/bookings/by-date/${date}/${roomId}`);
-    return response.data;
-  } catch (error) {
-    toast.error("❌ Failed to fetch booking");
-    console.error("❌ Error fetching booking:", error);
-    return null;
-  }
-};
-const handleDateChange = async (date: string) => {
-  handleSwapChange("date", date);
-  // LT1
-  if (formData.room_id) {  // only fetch if roomId is 17
-    const bookings = await fetch_booking_by_date_and_roomId(date, formData.room_id);
-
-    if (bookings) {
-      const options = bookings.map((b: any) => ({
-        code: b.name, // module code (assuming `name` is your moduleCode)
-        time: `${b.start_time} - ${b.end_time}`,
-        id:b.id // timeslot
-      }));
-
-      setBookingOptions(options);
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/booking/fetch_moduleCodes_by_user_email?email=${email}`
+      );
+      setModuleOptions(response.data);
+      return response.data;
+    } catch (error) {
+      toast.error("❌ Failed to fetch module codes", {
+        toastId: "err-fetch-module-codes",
+      });
+      console.error("❌ Error fetching module codes:", error);
+      return [];
     }
-  }
-};
-const handleSelect = (e: SelectChangeEvent<number | string>) => {
+  };
+
+  const fetch_halls_by_moduleCode = async (moduleCode: string) => {
+    const apiUrl = process.env.REACT_APP_API_URL;
+
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/booking/fetch_halls_by_moduleCode?module_code=${moduleCode}`
+      );
+      setSelectedRoomOptions(response.data);
+      return response.data;
+    } catch (error) {
+      toast.error("❌ Failed to fetch halls", { toastId: "err-fetch-halls" });
+      console.error("❌ Error fetching halls:", error);
+      return [];
+    }
+  };
+  useEffect(() => {
+    if (calendarCellInfo) {
+      fetchBookingById(calendarCellInfo.id);
+      // fetch_user_id();
+      if (email) fetch_moduleCodes_by_user_email(email);
+    }
+  }, [calendarCellInfo]);
+
+  // const [userID, setUserID] = useState<number | null>(null);
+  // const fetch_user_id = async () => {
+  //   try {
+  //     const response=await axios.get(`http://127.0.0.1:8000/fetch_user_profile_by_email/${email}`);
+  //     setUserID(response.data.id);
+  //   } catch (error) {
+  //     console.error("Error fetching user ID:", error);
+  //   }
+  // };
+
+  const [bookingOptions, setBookingOptions] = React.useState<
+    { code: string; time: string; id: number }[]
+  >([]);
+  const [swapData, setSwapData] = useState<{
+    date: string;
+    name: string;
+    start_time: string;
+    end_time: string;
+    id: number;
+  }>({
+    date: "",
+    name: "",
+    id: 0,
+    start_time: "",
+    end_time: "",
+  });
+  const create_swap_request = async () => {
+    console.log("Swap Data", swapData);
+    // console.log("userID:", userID);
+
+    try {
+      const response = await axios.post(`http://127.0.0.1:8000/swap/request`, {
+        requested_by_email: email,
+        requested_booking_id: swapData.id,
+        offered_booking_id: Number(calendarCellInfo.id),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error creating swap request:", error);
+      throw error;
+    }
+  };
+
+  //complete this function add aufill section
+  const fetch_booking_by_date_and_roomId = async (
+    date: string,
+    roomId: number
+  ) => {
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/bookings/by-date/${date}/${roomId}`
+      );
+      return response.data;
+    } catch (error) {
+      toast.error("❌ Failed to fetch booking", {
+        toastId: "err-fetch-booking",
+      });
+      console.error("❌ Error fetching booking:", error);
+      return null;
+    }
+  };
+  const handleDateChange = async (date: string) => {
+    handleSwapChange("date", date);
+    // LT1
+    if (formData.room_id) {
+      // only fetch if roomId is 17
+      const bookings = await fetch_booking_by_date_and_roomId(
+        date,
+        formData.room_id
+      );
+
+      if (bookings) {
+        const options = bookings.map((b: any) => ({
+          code: b.name, // module code (assuming `name` is your moduleCode)
+          time: `${b.start_time} - ${b.end_time}`,
+          id: b.id, // timeslot
+        }));
+
+        setBookingOptions(options);
+      }
+    }
+  };
+  const handleSelect = (e: SelectChangeEvent<number | string>) => {
     // MUI often returns string even for numeric values, so normalize to number
     const raw = e.target.value;
     console.log("Raw value from select event:", raw, typeof raw);
-    
+
     const selectedId = typeof raw === "string" ? Number(raw) : (raw as number);
 
     console.log("raw value from select:", raw, "parsed id:", selectedId);
@@ -791,22 +812,24 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
     const selectedOption = bookingOptions.find((o) => o.id === selectedId);
     if (!selectedOption) {
       // debug: this means types or values don't match
-      console.warn("Selected option not found for id:", selectedId, bookingOptions);
+      console.warn(
+        "Selected option not found for id:",
+        selectedId,
+        bookingOptions
+      );
     }
     // setSwapData(prev => ({...prev, name: e.target.value}));
     setSwapData((prev) => ({
       ...prev,
       id: selectedId,
-      
     }));
   };
-
 
   return (
     <div
       style={{ display: "flex", gap: "2rem", width: "100%", height: "100vh" }}
     >
-       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div
         style={{
           flex: 1,
@@ -838,10 +861,19 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
           flexDirection: "column",
         }}
       >
-        <h4>Booking Calendar</h4>
+        {/* <h4>Booking Calendar</h4> */}
         <div
           className="calendar-scroll-container"
-          style={theme === "dark" ? { background: "#383838" } : {}}
+          style={
+            theme === "dark"
+              ? {
+                  background: "#383838",
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                }
+              : { flex: 1, minHeight: 0, overflowY: "auto" }
+          }
         >
           <style>{`
                 .calendar-scroll-container .MuiInputLabel-root {
@@ -954,8 +986,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
                 onClick={() => {
                   setIsOpen(true);
                   fetchBookingById(calendarCellInfo.id);
-                
-                }}  
+                }}
                 variant="contained"
                 color="primary"
               >
@@ -965,8 +996,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
                 onClick={() => {
                   setIsSwap(true);
                   fetchBookingById(calendarCellInfo.id);
-                
-                }}  
+                }}
                 variant="contained"
                 color="primary"
               >
@@ -992,14 +1022,15 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
         <DialogTitle>Update Booking</DialogTitle>
         <DialogContent>
           {/* Room Name */}
-           <Box mb={2}>
+          <Box mb={2}>
             <FormControl fullWidth>
               <InputLabel>Module Code</InputLabel>
               <Select
-               value={formData.name || ""}
-               onChange={(e) => {handleChange("name", e.target.value);
-                fetch_halls_by_moduleCode(e.target.value);
-               }}
+                value={formData.name || ""}
+                onChange={(e) => {
+                  handleChange("name", e.target.value);
+                  fetch_halls_by_moduleCode(e.target.value);
+                }}
               >
                 {moduleOptions.map((code) => (
                   <MenuItem key={code} value={code}>
@@ -1028,7 +1059,6 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
           </Box>
 
           {/* Module Code */}
-         
 
           {/* Date */}
           <Box mb={2}>
@@ -1049,9 +1079,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
               type="time"
               label="Start Time"
               InputLabelProps={{ shrink: true }}
-              value={
-                formData.start_time ? formData.start_time.slice(0, 5) : ""
-              }
+              value={formData.start_time ? formData.start_time.slice(0, 5) : ""}
               onChange={(e) => handleChange("start_time", e.target.value)}
               inputProps={{ step: 300 }} // 5-minute steps
             />
@@ -1077,7 +1105,6 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
           >
             Update
           </Button>
-          
         </DialogActions>
       </Dialog>
       {/* <RightDrawer /> */}
@@ -1090,14 +1117,15 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
         <DialogTitle>Swap Booking</DialogTitle>
         <DialogContent>
           {/* Room Name */}
-           <Box display="flex" mb={2} gap={2}>
+          <Box display="flex" mb={2} gap={2}>
             <FormControl fullWidth>
               <InputLabel>Module Code</InputLabel>
               <Select
-               value={formData.name || ""}
-               onChange={(e) => {handleChange("name", e.target.value);
-                fetch_halls_by_moduleCode(e.target.value);
-               }}
+                value={formData.name || ""}
+                onChange={(e) => {
+                  handleChange("name", e.target.value);
+                  fetch_halls_by_moduleCode(e.target.value);
+                }}
               >
                 {moduleOptions.map((code) => (
                   <MenuItem key={code} value={code}>
@@ -1106,7 +1134,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
                 ))}
               </Select>
             </FormControl>
-          
+
             <FormControl fullWidth>
               <InputLabel>Room Name</InputLabel>
               <Select
@@ -1121,7 +1149,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
                 ))}
               </Select>
             </FormControl>
-          
+
             <TextField
               fullWidth
               type="date"
@@ -1139,9 +1167,7 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
               type="time"
               label="Start Time"
               InputLabelProps={{ shrink: true }}
-              value={
-                formData.start_time ? formData.start_time.slice(0, 5) : ""
-              }
+              value={formData.start_time ? formData.start_time.slice(0, 5) : ""}
               onChange={(e) => handleChange("start_time", e.target.value)}
               inputProps={{ step: 300 }} // 5-minute steps
             />
@@ -1156,35 +1182,34 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
           </Box>
           <DialogTitle>Swap With</DialogTitle>
           <Box display="flex" mb={2} gap={2}>
-           <FormControl fullWidth>
-  <TextField
-    fullWidth
-    type="date"
-    label="Date"
-    InputLabelProps={{ shrink: true }}
-    value={swapData.date.slice(0, 10)}
-    onChange={(e) => handleDateChange(e.target.value)}
-  />
-</FormControl>
+            <FormControl fullWidth>
+              <TextField
+                fullWidth
+                type="date"
+                label="Date"
+                InputLabelProps={{ shrink: true }}
+                value={swapData.date.slice(0, 10)}
+                onChange={(e) => handleDateChange(e.target.value)}
+              />
+            </FormControl>
 
             <FormControl fullWidth>
-  <InputLabel>Module & Time</InputLabel>
-  <Select
-        labelId="module-time-label"
-        id="module-time-select"
-        value={swapData.id ?? ""}
-        label="Module & Time"
-        onChange={handleSelect}
-        // onChange={(e) => setSwapData(prev => ({...prev, name: e.target.value}))}
-      >
-        {bookingOptions.map((option) => (
-          <MenuItem key={option.id} value={option.id}>
-            {option.code} ({option.time})
-          </MenuItem>
-        ))}
-      </Select>
-</FormControl>
- 
+              <InputLabel>Module & Time</InputLabel>
+              <Select
+                labelId="module-time-label"
+                id="module-time-select"
+                value={swapData.id ?? ""}
+                label="Module & Time"
+                onChange={handleSelect}
+                // onChange={(e) => setSwapData(prev => ({...prev, name: e.target.value}))}
+              >
+                {bookingOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.code} ({option.time})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </DialogContent>
 
@@ -1199,7 +1224,6 @@ const handleSelect = (e: SelectChangeEvent<number | string>) => {
           >
             Swap
           </Button>
-          
         </DialogActions>
       </Dialog>
     </div>

@@ -1,94 +1,242 @@
-/* Add vertical grid lines to FullCalendar time grid */
+:root {
+  --brand-500: #6b4b3a; /* warm brown */
+  --brand-700: #54392d;
+  --muted-100: #f6f7f9;
+  --muted-200: #e9ecef;
+  --text-900: #0f1720;
+}
+
+/* Grid lines */
 .fc .fc-timegrid-col {
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid var(--muted-200);
 }
 .dark-theme .fc .fc-timegrid-col {
-  border-right: 1px solid #444;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
 }
 .fc .fc-timegrid-col:last-child {
   border-right: none;
 }
-/* Smaller font for FullCalendar table headers */
-.fc .fc-col-header-cell, .fc .fc-timegrid-axis {
-  font-size: 0.78rem !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.01em;
+
+/* Headers & typography */
+.fc .fc-col-header-cell,
+.fc .fc-timegrid-axis {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--text-900);
+}
+.dark-theme .fc .fc-col-header-cell,
+.dark-theme .fc .fc-timegrid-axis {
+  color: #e7eef8;
+}
+.fc .fc-col-header-cell .fc-col-header-cell-cushion {
+  font-weight: 700 !important;
 }
 
-/* Only weekday names (Sun, Mon, etc.) bold */
-.fc .fc-col-header-cell .fc-col-header-cell-cushion {
-  font-weight: 800 !important;
-}
-/* Compact FullCalendar header: smaller buttons and title */
+/* Toolbar */
 .fc .fc-toolbar-title {
-  font-size: 1.05rem !important;
-  font-weight: 500;
+  font-size: 1.06rem !important;
+  font-weight: 700;
+  color: var(--text-900);
 }
-.fc .fc-button {
-  font-size: 0.85rem !important;
-  padding: 2px 10px !important;
-  min-width: 0;
-  border-radius: 5px;
+.dark-theme .fc .fc-toolbar-title {
+  color: #eaf3ff;
 }
 .fc .fc-toolbar {
-  min-height: 36px;
+  min-height: 44px;
+  padding: 0.45rem 0.5rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
 }
-/* FullCalendar custom theme for Booking Agent */
 
-/* Light Theme */
+/* Buttons: subtle rounded pills */
+.fc .fc-button {
+  font-size: 0.86rem !important;
+  padding: 6px 6px !important; /* reduced horizontal padding for compact toolbar */
+  border-radius: 999px !important;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-900);
+}
+.fc .fc-button:hover {
+  box-shadow: 0 4px 10px rgba(30, 30, 30, 0.06);
+}
+.fc .fc-button-primary {
+  background: linear-gradient(180deg, var(--brand-500), var(--brand-700));
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Light theme specifics */
 .light-theme .fc {
   background: #fff;
-  color: #333;
+  color: #111;
 }
 .light-theme .fc-toolbar {
-  background: #DDDDDD;
-  border-radius: 8px 8px 0 0;
-  padding: 0.5rem 1rem;
-}
-.light-theme .fc-col-header-cell, .light-theme .fc-timegrid-axis {
-  background: #f5f5f5;
-  color: #333;
-}
-.light-theme .fc-timegrid-slot {
-  background: #fafafa;
-}
-.light-theme .fc-event {
-  background: #5A3232;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-}
-
-/* Dark Theme */
-.dark-theme .fc {
-  background: #232323;
-  color: #fff;
-}
-.dark-theme .fc-toolbar {
-  background: #2a2a2a;
-  border-radius: 8px 8px 0 0;
-  padding: 0.5rem 1rem;
-}
-.dark-theme .fc-col-header-cell, .dark-theme .fc-timegrid-axis {
-  background: #333;
-  color: #fff;
-}
-.dark-theme .fc-timegrid-slot {
-  background: #232323;
-}
-.dark-theme .fc-event {
-  background: #5A3232;
-  color: #fff;
-  border: none !important;
-  border-radius: 6px;
-}
-.room-select-row{
-  margin-bottom: 1rem;
+  background: var(--muted-100);
   border-radius: 10px;
 }
+.light-theme .fc-col-header-cell,
+.light-theme .fc-timegrid-axis {
+  background: transparent;
+}
+.light-theme .fc-timegrid-slot {
+  background: #fff;
+}
+.light-theme .fc-event {
+  background: linear-gradient(180deg, var(--brand-500), var(--brand-700));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 6px 18px rgba(107, 75, 58, 0.12);
+}
+.light-theme .fc-event:hover {
+  transform: translateY(-2px);
+}
+
+/* Dark theme specifics */
+.dark-theme .fc {
+  background: #0f1720;
+  color: #eaf3ff;
+}
+.dark-theme .fc-toolbar {
+  background: #0b1220;
+  border-radius: 10px;
+}
+.dark-theme .fc-col-header-cell,
+.dark-theme .fc-timegrid-axis {
+  background: transparent;
+}
+.dark-theme .fc-event {
+  background: linear-gradient(180deg, var(--brand-700), var(--brand-500));
+  color: #fff;
+  border: none !important;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.room-select-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Ensure the floating InputLabel for the room select stays left-aligned */
+.room-select-row .MuiFormControl-root {
+  position: relative;
+}
+.room-select-row .MuiInputLabel-root {
+  left: 6px !important;
+  transform-origin: left top;
+}
+.room-select-row .MuiInputLabel-root.MuiInputLabel-shrink {
+  transform: translate(12px, -9px) scale(0.75) !important;
+}
+.room-select-row .MuiSelect-select {
+  padding-left: 12px !important;
+  justify-content: flex-start !important;
+}
+
+/* Remove borders/shadows in compact mode */
 .dark-theme .fc-event,
 .dark-theme .fc-timegrid-event,
 .dark-theme .fc-daygrid-event {
   border: none !important;
-  box-shadow: none !important; /* sometimes events have shadow that looks like border */
+}
+
+/* Responsive tweak */
+@media (max-width: 720px) {
+  .fc .fc-toolbar-title {
+    font-size: 0.96rem !important;
+  }
+  .fc .fc-button {
+    padding: 6px 6px !important;
+  }
+}
+
+/* Blue pill button design (reusable) */
+.btn-blue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3b82f6, #2563eb); /* blue gradient */
+  color: #fff !important;
+  padding: 10px 22px;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+  border: none;
+  font-weight: 600;
+  text-transform: none;
+  cursor: pointer;
+}
+.btn-blue:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.2);
+}
+.btn-blue:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+}
+
+/* Apply inside booking-analysis card to standard MUI primary buttons */
+/* Green and brown pill button designs (reusable) */
+.btn-green {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #34d399, #059669); /* green gradient */
+  color: #fff !important;
+  padding: 10px 22px;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.12);
+  border: none;
+  font-weight: 600;
+  text-transform: none;
+  cursor: pointer;
+}
+.btn-green:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.16);
+}
+.btn-green:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(5, 150, 105, 0.08);
+}
+
+.btn-brown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--brand-500), var(--brand-700));
+  color: #fff !important;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px rgba(84, 57, 45, 0.12);
+  border: none;
+  font-weight: 600;
+  text-transform: none !important;
+  cursor: pointer;
+}
+.btn-brown:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(84, 57, 45, 0.16);
+}
+.btn-brown:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(84, 57, 45, 0.08);
+}
+
+/* Small variants */
+.btn-green--small,
+.btn-brown--small {
+  padding: 6px 12px;
+  font-size: 0.92rem;
+}
+
+/* small variant for toolbar buttons to remain compact */
+.btn-blue--small {
+  padding: 6px 12px;
+  font-size: 0.92rem;
 }
