@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import "../BookingAgent/BookingChatInterface.css";
 import BackupIcon from "@mui/icons-material/Backup";
+import DescriptionIcon from "@mui/icons-material/Description";
 // import Home from "./Home";
 
 const PlannerChatInterface: React.FC = () => {
@@ -380,83 +381,6 @@ const PlannerChatInterface: React.FC = () => {
               </strong>
             </div>
 
-            {/* <div style={{ marginBottom: 12 }}>
-              <div
-                style={{
-                  marginBottom: 8,
-                  color: isDarkTheme ? "#9aa" : "#777",
-                }}
-              >
-                Upload (drag & drop or click)
-              </div>
-              <div
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onDragLeave={handleDragLeave}
-                style={{
-                  border: `2px dashed rgba(107,75,58,0.35)`,
-                  padding: 12,
-                  borderRadius: 8,
-                  background: isDragging
-                    ? "rgba(107,75,58,0.28)"
-                    : "rgba(107,75,58,0.20)",
-                  color: isDarkTheme ? "#fff" : "var(--brand-700)",
-                  height: "40vh",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <div>
-                    {uploadedFileName ||
-                      "Drop a CSV/XLSX file here or click Upload"}
-                  </div>
-                  <div>
-                    <button
-                      onClick={handleUploadClick}
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: 6,
-                        background: "var(--brand-500)",
-                        color: "#fff",
-                        border: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Upload
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                <button
-                  onClick={generateTimetable}
-                  disabled={!uploadedFile}
-                  style={{
-                    flex: 1,
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    background: uploadedFile
-                      ? selectedView === "academic"
-                        ? "var(--brand-500)"
-                        : "var(--brand-700)"
-                      : "rgba(0,0,0,0.06)",
-                    color: uploadedFile ? "#fff" : "#999",
-                    border: "none",
-                    cursor: uploadedFile ? "pointer" : "not-allowed",
-                  }}
-                >
-                  Generate
-                </button>
-              </div>
-            </div> */}
-
             <div style={{ marginBottom: 12 }}>
               <div
                 style={{
@@ -479,7 +403,7 @@ const PlannerChatInterface: React.FC = () => {
                     ? "rgba(107,75,58,0.28)"
                     : "rgba(107,75,58,0.20)",
                   color: isDarkTheme ? "#fff" : "var(--brand-700)",
-                  height: "40vh",
+                  height: "50vh",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
@@ -490,32 +414,18 @@ const PlannerChatInterface: React.FC = () => {
                 }}
                 onClick={handleUploadClick}
               >
-                {/* Drag & Drop Icon */}
-                <BackupIcon
-                  style={{ fontSize: 60, opacity: isDragging ? 0.2 : 0.5 }}
-                />
-                {/* <svg
-                  width="60"
-                  height="60"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 16V4" />
-                  <path d="M6 10l6-6 6 6" />
-                  <rect x="3" y="16" width="18" height="4" rx="1" />
-                </svg> */}
-
-                {/* Text */}
+                {uploadedFile ? (
+                  <DescriptionIcon style={{ fontSize: 60, opacity: 0.9 }} />
+                ) : (
+                  <BackupIcon
+                    style={{ fontSize: 60, opacity: isDragging ? 0.2 : 0.5 }}
+                  />
+                )}
                 <div style={{ fontSize: 14, opacity: isDragging ? 0.2 : 0.7 }}>
                   {uploadedFileName ||
                     "Drop a CSV/XLSX file here or click Upload"}
                 </div>
 
-                {/* Browse Button */}
                 <button
                   onClick={handleUploadClick}
                   style={{
@@ -531,26 +441,127 @@ const PlannerChatInterface: React.FC = () => {
                   Browse Files
                 </button>
               </div>
-            </div>
 
-            <div style={{ marginTop: 8 }}>
-              <button
-                onClick={triggerDownload}
-                disabled={!lastDownloadUrl}
+              <div
                 style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  background: lastDownloadUrl
-                    ? "var(--brand-500)"
-                    : "rgba(0,0,0,0.06)",
-                  color: lastDownloadUrl ? "#fff" : "#999",
-                  border: "none",
-                  cursor: lastDownloadUrl ? "pointer" : "not-allowed",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  marginTop: 12,
                 }}
               >
-                Download Timetable
-              </button>
+                <button
+                  onClick={generateTimetable}
+                  disabled={!uploadedFile}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: uploadedFile
+                      ? "#16a34a"
+                      : "rgba(22,163,74,0.18)",
+                    color: uploadedFile
+                      ? "#fff"
+                      : isDarkTheme
+                      ? "#bdbdbd"
+                      : "#7a7a7a",
+                    border: "none",
+                    cursor: uploadedFile ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    fontWeight: 600,
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 2v6"
+                      stroke={uploadedFile ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M5 11l7-7 7 7"
+                      stroke={uploadedFile ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                      stroke={uploadedFile ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Generate Timetable
+                </button>
+
+                <button
+                  onClick={triggerDownload}
+                  disabled={!lastDownloadUrl}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: lastDownloadUrl
+                      ? "rgb(107,75,58)"
+                      : "rgba(107,75,58,0.18)",
+                    color: lastDownloadUrl
+                      ? "#fff"
+                      : isDarkTheme
+                      ? "#bdbdbd"
+                      : "#7a7a7a",
+                    border: "none",
+                    cursor: lastDownloadUrl ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    fontWeight: 600,
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                      stroke={lastDownloadUrl ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M7 10l5 5 5-5"
+                      stroke={lastDownloadUrl ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 15V3"
+                      stroke={lastDownloadUrl ? "#fff" : "#999"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Download Timetable
+                </button>
+              </div>
             </div>
           </div>
         </div>
