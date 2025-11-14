@@ -1,13 +1,12 @@
 import * as React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme as useMuiTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Button from "@mui/material/Button";
-import Input from "@mui/material/Input";
-import Typography from "@mui/material/Typography";
+// upload controls are handled in the PlannerChatInterface sidebar
+// imports for Button/Input/Typography removed from this view
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -15,17 +14,16 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
-import { useEffect } from "react";
+import { useTheme as useAppTheme } from "../../context/ThemeContext";
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: "#fff",
+  // prefer the global CSS variable for panel surface (FullCalendarTheme.css)
+  // fall back to MUI palette when variable is not present
+  backgroundColor: `var(--item-bg, ${theme.palette.background.default})`,
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: "center",
-  color: (theme.vars ?? theme).palette.text.secondary,
-  ...theme.applyStyles?.("dark", {
-    backgroundColor: "#1A2027",
-  }),
+  color: `var(--dialog-text, ${theme.palette.text.primary})`,
 }));
 
 // TabPanel Component
@@ -52,38 +50,71 @@ const timeSlots = Array.from(
 
 // Timetable display table
 function TimetableTable({ timetable }) {
-  console.log("Timetable data:", timetable);
+  const theme = useMuiTheme();
+  // Prefer CSS variables provided by FullCalendarTheme.css (supports dark/light)
+  // with a fallback to the MUI palette when variables are not present.
+  const panelBg = `var(--item-bg, ${theme.palette.background.paper})`;
+  const headBg = `var(--dialog-input-bg, ${theme.palette.action.hover})`;
+  const mutedText = `var(--dialog-muted-text, ${theme.palette.text.secondary})`;
+  const dividerColor = `var(--dialog-border, ${theme.palette.divider})`;
+  const primaryText = `var(--dialog-text, ${theme.palette.text.primary})`;
+  const eventText = `var(--event-text, ${theme.palette.primary.contrastText})`;
+
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
+    <TableContainer
+      component={Paper}
+      sx={{
+        backgroundColor: panelBg,
+        boxShadow: theme.shadows[1],
+        width: "100%",
+        overflowX: "auto",
+      }}
+    >
+      <Table size="small" sx={{ width: "100%", tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-            <TableCell>Time</TableCell>
+            <TableCell sx={{ color: mutedText }}>Time</TableCell>
             {days.map((day) => (
-              <TableCell key={day}>{day}</TableCell>
+              <TableCell
+                key={day}
+                sx={{
+                  backgroundColor: headBg,
+                  color: primaryText,
+                  fontWeight: 700,
+                  textAlign: "center",
+                }}
+              >
+                {day}
+              </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
           {timeSlots.map((slotLabel, rowIdx) => (
             <TableRow key={slotLabel}>
-              <TableCell>{slotLabel}</TableCell>
+              <TableCell
+                sx={{
+                  borderBottom: `1px solid ${dividerColor}`,
+                  color: mutedText,
+                }}
+              >
+                {slotLabel}
+              </TableCell>
               {days.map((day) => {
                 const slotModules = timetable?.[day]?.[rowIdx] || [];
-                console.log(`Slot ${day} ${rowIdx}:`, slotModules);
-
                 return (
                   <TableCell
                     key={day + "-" + rowIdx}
                     sx={{
                       backgroundColor: slotModules.length
-                        ? "#1976d2"
+                        ? theme.palette.primary.main
                         : "transparent",
-                      color: slotModules.length ? "white" : "inherit",
+                      color: slotModules.length ? eventText : primaryText,
                       textAlign: "center",
-                      fontWeight: slotModules.length ? 600 : "normal",
+                      fontWeight: slotModules.length ? 700 : "normal",
                       verticalAlign: "middle",
                       whiteSpace: "pre-line",
+                      borderBottom: `1px solid ${dividerColor}`,
                     }}
                   >
                     {slotModules.map((mod, i) => (
@@ -104,7 +135,8 @@ function TimetableTable({ timetable }) {
 
 export default function PlannerScreen() {
   const [tab, setTab] = React.useState(0);
-  const [selectedFile, setSelectedFile] = React.useState(null);
+  const { theme: appTheme } = useAppTheme();
+  const muiTheme = useMuiTheme();
 
   const semesters = [1, 3, 5, 7];
   const [calenderData, setCalenderData] = React.useState(
@@ -120,63 +152,7 @@ export default function PlannerScreen() {
     setSemester(semesters[newValue]); // Link tab index to actual semester
   };
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-  const [firstExamFile, setFirstExamFile] = React.useState(null);
-  const handleExamFileChange = (event) => {
-    setFirstExamFile(event.target.files[0]);
-  };
-
-  // File upload handler
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/api/upload",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      alert(response.data);
-      await getCalenderData(); // Refresh timetable
-    } catch (error) {
-      const message =
-        error.response?.data || "Upload failed. Please try again.";
-      alert(message);
-      console.error("Upload failed:", error);
-    }
-  };
-  const handleExamUpload = async () => {
-    if (!firstExamFile) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", firstExamFile);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/api/uploadExam",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      alert(response.data);
-      await getCalenderData(); // Refresh timetable
-    } catch (error) {
-      const message =
-        error.response?.data || "Upload failed. Please try again.";
-      alert(message);
-      console.error("Upload failed:", error);
-    }
-  };
+  // Upload / exam upload are handled by the PlannerChatInterface sidebar
 
   // Fetch timetable data from backend
   const getCalenderData = async () => {
@@ -224,44 +200,16 @@ export default function PlannerScreen() {
   };
 
   // Fetch when component loads or semester changes
-  useEffect(() => {
+  React.useEffect(() => {
     getCalenderData();
+    // we intentionally only run when semester changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semester]);
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ flexGrow: 1 }} data-theme={appTheme}>
       <Grid container spacing={2}>
-        {/* LEFT: Upload Section */}
-        <Grid item xs={4}>
-          <Item sx={{ height: "100%", boxSizing: "border-box" }}>
-            <Typography variant="h6">Upload File</Typography>
-            <label htmlFor="timetable-file">
-              <Input
-                id="timetable-file"
-                type="file"
-                sx={{ display: "none" }}
-                onChange={handleFileChange}
-              />
-              <Button variant="contained" component="span">
-                Choose File
-              </Button>
-              {selectedFile && (
-                <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
-                  {selectedFile.name}
-                </Typography>
-              )}
-            </label>
-            <Box sx={{ mt: 2 }}>
-              <Button
-                variant="outlined"
-                onClick={handleUpload}
-                disabled={!selectedFile}
-              >
-                Generate Timetable
-              </Button>
-            </Box>
-          </Item>
-        </Grid>
+        {/* Upload handled by the right sidebar in PlannerChatInterface; left upload panel removed */}
         {/* <Grid item xs={4}>
           <Item sx={{ height: "100%", boxSizing: "border-box" }}>
             <Typography variant="h6">Upload File</Typography>
@@ -292,8 +240,8 @@ export default function PlannerScreen() {
             </Box>
           </Item>
         </Grid> */}
-        {/* RIGHT: Timetable Display */}
-        <Grid item xs={8}>
+        {/* Timetable Display */}
+        <Grid item xs={12}>
           <Item sx={{ height: "100%", boxSizing: "border-box" }}>
             <Tabs
               value={tab}
@@ -303,7 +251,18 @@ export default function PlannerScreen() {
               sx={{ mb: 2 }}
             >
               {semesters.map((s, i) => (
-                <Tab key={s} label={`Semester ${s}`} />
+                <Tab
+                  key={s}
+                  label={`Semester ${s}`}
+                  sx={{
+                    textTransform: "none",
+                    color: `var(--brand-500, ${muiTheme.palette.primary.dark})`,
+                    fontWeight: 700,
+                    "&.Mui-selected": {
+                      color: `var(--action-primary-start, ${muiTheme.palette.success.main})`,
+                    },
+                  }}
+                />
               ))}
             </Tabs>
 

@@ -3,6 +3,8 @@ import { useTheme } from "../../context/ThemeContext";
 import "../BookingAgent/BookingChatInterface.css";
 import BackupIcon from "@mui/icons-material/Backup";
 import DescriptionIcon from "@mui/icons-material/Description";
+import PlannerScreen from "./plannerScreen";
+import ExamTimeTable from "./ExamTimeTable";
 // import Home from "./Home";
 
 const PlannerChatInterface: React.FC = () => {
@@ -233,113 +235,11 @@ const PlannerChatInterface: React.FC = () => {
                 overflow: "auto",
               }}
             >
-              {/* Placeholder grid — replace with real timetable rendering */}
-              <div style={{ padding: 12 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Time
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Mon
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Tue
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Wed
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Thu
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: 8,
-                          borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        Fri
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from({ length: 10 }).map((_, r) => (
-                      <tr key={r}>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        >
-                          {8 + r}:00 - {9 + r}:00
-                        </td>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        ></td>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        ></td>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        ></td>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        ></td>
-                        <td
-                          style={{
-                            padding: 10,
-                            borderBottom: "1px solid rgba(0,0,0,0.04)",
-                          }}
-                        ></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {selectedView === "academic" ? (
+                <PlannerScreen />
+              ) : (
+                <ExamTimeTable />
+              )}
             </div>
           </div>
         </div>

@@ -1,13 +1,12 @@
 import * as React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme as useMuiTheme } from "@mui/material/styles";
+import { useTheme as useAppTheme } from "../../context/ThemeContext";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Button from "@mui/material/Button";
-import Input from "@mui/material/Input";
-import Typography from "@mui/material/Typography";
+// Upload controls handled in the PlannerChatInterface sidebar; local upload UI removed
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -18,14 +17,13 @@ import axios from "axios";
 import { useEffect } from "react";
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: "#fff",
+  // prefer the global CSS variable for panel surface (FullCalendarTheme.css)
+  // fall back to MUI palette when variable is not present
+  backgroundColor: `var(--item-bg, ${theme.palette.background.default})`,
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: "center",
-  color: (theme.vars ?? theme).palette.text.secondary,
-  ...theme.applyStyles?.("dark", {
-    backgroundColor: "#1A2027",
-  }),
+  color: `var(--dialog-text, ${theme.palette.text.primary})`,
 }));
 
 // TabPanel Component
@@ -44,67 +42,121 @@ function TabPanel(props) {
   );
 }
 
-const days = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7", "Day 8", "Day 9", "Day 10", "Day 11", "Day 12", "Day 13", "Day 14"];
+const days = [
+  "Day 1",
+  "Day 2",
+  "Day 3",
+  "Day 4",
+  "Day 5",
+  "Day 6",
+  "Day 7",
+  "Day 8",
+  "Day 9",
+  "Day 10",
+  "Day 11",
+  "Day 12",
+  "Day 13",
+  "Day 14",
+];
 const timeSlots = Array.from(
   { length: 2 },
   (_, i) => `${8 + i}:00 - ${9 + i}:00`
 );
 
 // Timetable display table
+// Timetable display table (Exam: x-axis = time slots, y-axis = days)
+// Timetable display table (Exam: x-axis = time slots, y-axis = days)
 function TimetableTable({ timetable }) {
-  console.log("Timetable data:", timetable);
-  return (
-    <TableContainer component={Paper}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Time</TableCell>
-            {days.map((day) => (
-              <TableCell key={day}>{day}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {timeSlots.map((slotLabel, rowIdx) => (
-            <TableRow key={slotLabel}>
-              <TableCell>{slotLabel}</TableCell>
-              {days.map((day) => {
-                const slotModules = timetable?.[day]?.[rowIdx] || [];
-                console.log(`Slot ${day} ${rowIdx}:`, slotModules);
+  const theme = useMuiTheme();
 
-                return (
-                  <TableCell
-                    key={day + "-" + rowIdx}
-                    sx={{
-                      backgroundColor: slotModules.length
-                        ? "#1976d2"
-                        : "transparent",
-                      color: slotModules.length ? "white" : "inherit",
-                      textAlign: "center",
-                      fontWeight: slotModules.length ? 600 : "normal",
-                      verticalAlign: "middle",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {slotModules.map((mod, i) => (
-                      <div key={i}>
-                        {mod.code} ({mod.hall})
-                      </div>
-                    ))}
-                  </TableCell>
-                );
-              })}
+  // Prefer CSS variables with MUI fallbacks so global CSS theme overrides apply
+  const panelBg = `var(--item-bg, ${theme.palette.background.paper})`;
+  const headBg = `var(--dialog-input-bg, ${theme.palette.action.hover})`;
+  const mutedText = `var(--dialog-muted-text, ${theme.palette.text.secondary})`;
+  const dividerColor = `var(--dialog-border, ${theme.palette.divider})`;
+  const primaryText = `var(--dialog-text, ${theme.palette.text.primary})`;
+  const eventText = `var(--event-text, ${theme.palette.primary.contrastText})`;
+
+  return (
+    <div>
+      <div style={{ marginBottom: 8, fontStyle: "italic", color: mutedText }}>
+        This view is only for exam timetables.
+      </div>
+      <TableContainer
+        component={Paper}
+        sx={{
+          backgroundColor: panelBg,
+          boxShadow: theme.shadows[1],
+          overflowX: "auto",
+          width: "100%",
+        }}
+      >
+        <Table size="small" sx={{ width: "100%", tableLayout: "fixed" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ color: mutedText }}>Day</TableCell>
+              {timeSlots.map((slot, i) => (
+                <TableCell
+                  key={i}
+                  sx={{
+                    textAlign: "center",
+                    fontWeight: 700,
+                    backgroundColor: headBg,
+                    color: primaryText,
+                  }}
+                >
+                  {slot}
+                </TableCell>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {days.map((day) => (
+              <TableRow key={day}>
+                <TableCell sx={{ fontWeight: 700, color: primaryText }}>
+                  {day}
+                </TableCell>
+                {timeSlots.map((_, slotIdx) => {
+                  const slotModules = timetable?.[day]?.[slotIdx] || [];
+                  return (
+                    <TableCell
+                      key={day + "-" + slotIdx}
+                      sx={{
+                        backgroundColor: slotModules.length
+                          ? theme.palette.primary.main
+                          : "transparent",
+                        color: slotModules.length ? eventText : primaryText,
+                        textAlign: "center",
+                        fontWeight: slotModules.length ? 700 : "normal",
+                        verticalAlign: "middle",
+                        whiteSpace: "pre-line",
+                        borderBottom: `1px solid ${dividerColor}`,
+                      }}
+                    >
+                      {slotModules.length
+                        ? slotModules.map((mod, i) => (
+                            <div key={i}>
+                              {mod.code} ({mod.hall})
+                            </div>
+                          ))
+                        : null}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   );
 }
 
 export default function ExamTimeTable() {
   const [tab, setTab] = React.useState(0);
-  const [selectedFile, setSelectedFile] = React.useState(null);
+
+  const { theme: appTheme } = useAppTheme();
+  const muiTheme = useMuiTheme();
 
   const semesters = [1, 3, 5, 7];
   const [calenderData, setCalenderData] = React.useState(
@@ -120,37 +172,7 @@ export default function ExamTimeTable() {
     setSemester(semesters[newValue]); // Link tab index to actual semester
   };
 
-
-  const [firstExamFile, setFirstExamFile] = React.useState(null);
-  const handleExamFileChange = (event) => {
-    setFirstExamFile(event.target.files[0]);
-  };
-
-  
-  const handleExamUpload = async () => {
-    if (!firstExamFile) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", firstExamFile);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/api/uploadExam",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      alert(response.data);
-      await getCalenderData(); // Refresh timetable
-    } catch (error) {
-      const message =
-        error.response?.data || "Upload failed. Please try again.";
-      alert(message);
-      console.error("Upload failed:", error);
-    }
-  };
+  // Exam upload handled by sidebar; removed local upload handlers
 
   // Fetch timetable data from backend
   const getCalenderData = async () => {
@@ -210,71 +232,11 @@ export default function ExamTimeTable() {
   }, [semester]);
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ flexGrow: 1 }} data-theme={appTheme}>
       <Grid container spacing={2}>
-        {/* LEFT: Upload Section */}
-        {/* <Grid item xs={4}>
-          <Item sx={{ height: "100%", boxSizing: "border-box" }}>
-            <Typography variant="h6">Upload File</Typography>
-            <label htmlFor="timetable-file">
-              <Input
-                id="timetable-file"
-                type="file"
-                sx={{ display: "none" }}
-                onChange={handleFileChange}
-              />
-              <Button variant="contained" component="span">
-                Choose File
-              </Button>
-              {selectedFile && (
-                <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
-                  {selectedFile.name}
-                </Typography>
-              )}
-            </label>
-            <Box sx={{ mt: 2 }}>
-              <Button
-                variant="outlined"
-                onClick={handleUpload}
-                disabled={!selectedFile}
-              >
-                Generate Timetable
-              </Button>
-            </Box>
-          </Item>
-        </Grid> */}
-        <Grid item xs={4}>
-          <Item sx={{ height: "100%", boxSizing: "border-box" }}>
-            <Typography variant="h6">Upload File</Typography>
-            <label htmlFor="exam-file">
-              <Input
-                id="exam-file"
-                type="file"
-                sx={{ display: "none" }}
-                onChange={handleExamFileChange}
-              />
-              <Button variant="contained" component="span">
-                Choose File
-              </Button>
-              {firstExamFile && (
-                <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
-                  {firstExamFile.name}
-                </Typography>
-              )}
-            </label>
-            <Box sx={{ mt: 2 }}>
-              <Button
-                variant="outlined"
-                onClick={handleExamUpload}
-                disabled={!firstExamFile}
-              >
-                Generate Exam Timetable
-              </Button>
-            </Box>
-          </Item>
-        </Grid>
-        {/* RIGHT: Timetable Display */}
-        <Grid item xs={8}>
+        {/* Upload handled by the PlannerChatInterface sidebar; left upload panels removed */}
+        {/* Timetable Display */}
+        <Grid item xs={12}>
           <Item sx={{ height: "100%", boxSizing: "border-box" }}>
             <Tabs
               value={tab}
@@ -284,7 +246,18 @@ export default function ExamTimeTable() {
               sx={{ mb: 2 }}
             >
               {semesters.map((s, i) => (
-                <Tab key={s} label={`Semester ${s}`} />
+                <Tab
+                  key={s}
+                  label={`Semester ${s}`}
+                  sx={{
+                    textTransform: "none",
+                    color: `var(--brand-500, ${muiTheme.palette.primary.dark})`,
+                    fontWeight: 700,
+                    "&.Mui-selected": {
+                      color: `var(--action-primary-start, ${muiTheme.palette.success.main})`,
+                    },
+                  }}
+                />
               ))}
             </Tabs>
 
