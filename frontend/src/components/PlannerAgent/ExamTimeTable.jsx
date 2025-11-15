@@ -243,7 +243,12 @@ export default function ExamTimeTable() {
               onChange={handleTabChange}
               aria-label="Timetable Tabs"
               variant="fullWidth"
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+                "& .MuiTabs-indicator": {
+                  backgroundColor: `var(--action-primary-start, ${muiTheme.palette.success.main})`,
+                },
+              }}
             >
               {semesters.map((s, i) => (
                 <Tab
