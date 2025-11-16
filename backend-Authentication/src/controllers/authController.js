@@ -2,13 +2,13 @@
 exports.getMe = async (req, res) => {
   try {
     // Disable caching for this endpoint
-    res.set('Cache-Control', 'no-store');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
+    res.set("Cache-Control", "no-store");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
     const userId = req.user.userId;
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json({
       email: user.email,
@@ -16,19 +16,20 @@ exports.getMe = async (req, res) => {
       department: user.department,
       firstname: user.firstname,
       lastname: user.lastname,
-      role: user.role
+      role: user.role,
     });
   } catch (err) {
-    console.error('GetMe error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("GetMe error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
-const { generateOtp, storeOtp, validateOtp } = require('../utils/otp');
-const { sendOtpEmail } = require('../services/mailService');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-
+const { generateOtp, storeOtp, validateOtp } = require("../utils/otp");
+const { sendOtpEmail } = require("../services/mailService");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const UsageInterval = require("../models/UsageInterval");
+const DailyLogin = require("../models/DailyLogin");
 
 const otpStore = {}; // In-memory store for demo
 const otpVerified = {}; // Tracks OTP verification status per email
@@ -37,21 +38,26 @@ const otpVerified = {}; // Tracks OTP verification status per email
 exports.signup = async (req, res) => {
   const { email, password, title, department, firstname, lastname } = req.body;
   if (!otpVerified[email]) {
-    return res.status(400).json({ message: 'OTP not verified for this email. Please verify OTP before signing up.' });
+    return res
+      .status(400)
+      .json({
+        message:
+          "OTP not verified for this email. Please verify OTP before signing up.",
+      });
   }
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ message: 'User already exists' });
+      return res.status(409).json({ message: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     let userFirstname = firstname;
     let userLastname = lastname;
     // Auto-extract first and last name for engug.ruh.ac.lk users if not provided
-    if (email.endsWith('@engug.ruh.ac.lk') && (!firstname || !lastname)) {
+    if (email.endsWith("@engug.ruh.ac.lk") && (!firstname || !lastname)) {
       // Remove domain and possible trailing _eXX
-      let prefix = email.split('@')[0].replace(/_e\d+$/, '');
-      const parts = prefix.split('_');
+      let prefix = email.split("@")[0].replace(/_e\d+$/, "");
+      const parts = prefix.split("_");
       if (parts.length >= 2) {
         userFirstname = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
         userLastname = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
@@ -65,15 +71,15 @@ exports.signup = async (req, res) => {
       title: title || undefined,
       department: department || undefined,
       firstname: userFirstname || undefined,
-      lastname: userLastname || undefined
+      lastname: userLastname || undefined,
     });
     await user.save();
     // Remove OTP verified flag after successful signup
     delete otpVerified[email];
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Signup error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -83,37 +89,36 @@ exports.requestOtp = async (req, res) => {
   storeOtp(otpStore, email, otp);
   try {
     await sendOtpEmail(email, otp);
-    res.json({ message: 'OTP sent' });
+    res.json({ message: "OTP sent" });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to send OTP email', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to send OTP email", error: err.message });
   }
 };
 
-
 // Async version to support DB lookup for lecturers
 async function getUserRoleAndName(email) {
-  if (!email) return { role: 'unknown', name: null, department: null };
-  const [prefix, domain] = email.split('@');
-  if (domain === 'engug.ruh.ac.lk') {
-    let namePart = prefix.replace(/_[a-zA-Z0-9]+$/, '');
+  if (!email) return { role: "unknown", name: null, department: null };
+  const [prefix, domain] = email.split("@");
+  if (domain === "engug.ruh.ac.lk") {
+    let namePart = prefix.replace(/_[a-zA-Z0-9]+$/, "");
     const name = namePart
-      .split('_')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
-    return { role: 'undergraduate', name, department: null };
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+    return { role: "undergraduate", name, department: null };
   }
-
 }
-
 
 exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
   if (validateOtp(otpStore, email, otp)) {
     otpVerified[email] = true;
-    const { role, name , department} = await getUserRoleAndName(email);
-    res.json({ message: 'OTP verified', role, name, department });
+    const { role, name, department } = await getUserRoleAndName(email);
+    res.json({ message: "OTP verified", role, name, department });
   } else {
-    res.status(400).json({ message: 'Invalid or expired OTP' });
+    res.status(400).json({ message: "Invalid or expired OTP" });
   }
 };
 
@@ -123,22 +128,22 @@ exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     //Uncomment for real password check:
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     // Generate JWT access token (5 min expiry)
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '60m' }
+      { expiresIn: "60m" }
     );
-    res.set('x-access-token', token);
+    res.set("x-access-token", token);
     res.json({
-      message: 'Login successful',
+      message: "Login successful",
       accessToken: token,
       user: {
         id: user._id,
@@ -147,12 +152,50 @@ exports.login = async (req, res) => {
         department: user.department,
         firstname: user.firstname,
         lastname: user.lastname,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
+    // record a single 'daily login' marker for today's date; only the first
+    // login of the day creates the document (unique index prevents duplicates)
+    try {
+      const now = new Date();
+      const dateKey = now.toISOString().slice(0, 10);
+      await DailyLogin.updateOne(
+        { userId: String(user._id), date: dateKey },
+        { $setOnInsert: { createdAt: now } },
+        { upsert: true }
+      );
+      // keep creating a UsageInterval too for backward compatibility / debugging
+      // but avoid creating multiple short 'login' intervals for the same day
+      try {
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const existing = await UsageInterval.findOne({
+          userId: String(user._id),
+          start: { $gte: startOfDay, $lte: endOfDay },
+        }).lean();
+
+        if (!existing) {
+          const init = new UsageInterval({
+            userId: String(user._id),
+            start: now,
+            end: now,
+          });
+          await init.save();
+        } else {
+          // already have a usage interval today; skip creating another
+        }
+      } catch (err) {
+        console.error("failed to save initial usage interval on login", err);
+      }
+    } catch (err) {
+      console.error("failed to upsert daily login on login", err);
+    }
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
-

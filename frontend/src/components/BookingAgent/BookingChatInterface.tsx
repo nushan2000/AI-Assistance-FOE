@@ -71,7 +71,7 @@ const BookingChatInterface: React.FC = () => {
   const [moduleCode, setModuleCode] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     room_name: "LT1",
-    name:"",
+    name: "",
     room_id: Number(0),
     // module_code: '',
     date: "",
@@ -102,8 +102,6 @@ const BookingChatInterface: React.FC = () => {
       setEmail(userEmail);
     };
     getEmail();
-   
-    
   }, []);
 
   // Called when chat updates
@@ -221,7 +219,6 @@ const BookingChatInterface: React.FC = () => {
       let errorMessage = "Failed to book the room. Please try again.";
 
       if (axios.isAxiosError(err) && err.response) {
-
         if (err.response.data?.detail) {
           if (typeof err.response.data.detail === "string") {
             errorMessage = `❌ ${err.response.data.detail}`;
@@ -606,7 +603,6 @@ const BookingChatInterface: React.FC = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    
   }, [messages]);
 
   const createBooking = async () => {
@@ -707,27 +703,26 @@ const BookingChatInterface: React.FC = () => {
         }
       );
       console.log("Fetched booking details:", response.data);
-      
+
       setFormData({
         room_name: response.data.room_name,
-        name:response.data.name,
+        name: response.data.name,
         room_id: response.data.room_id,
         // module_code: response.data.module_code,
         date: response.data.timestamp,
         start_time: response.data.start_time,
         end_time: response.data.end_time,
       });
-      if(email)
-      fetch_moduleCodes_by_user_email(email);
-    fetch_halls_by_moduleCode(response.data.name);
+      if (email) fetch_moduleCodes_by_user_email(email);
+      fetch_halls_by_moduleCode(response.data.name);
       // Optionally, refresh the calendar or show a success message
     } catch (error) {
       // toast.error("❌ Failed to fetch booking details");
       console.error("❌ Error fetching booking:", error);
     }
   };
-const fetch_moduleCodes_by_user_email = async (email: string) => {
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const fetch_moduleCodes_by_user_email = async (email: string) => {
+    const apiUrl = process.env.REACT_APP_API_URL;
 
   try {
     const response = await axios.get(`${process.env.REACT_APP_HBA_URL}/booking/fetch_moduleCodes_by_user_email?email=${email}`);
@@ -855,12 +850,11 @@ const handleDateChange = async (date: string) => {
     }
 };
 
-
   return (
     <div
       style={{ display: "flex", gap: "2rem", width: "100%", height: "100vh" }}
     >
-       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div
         style={{
           flex: 1,
@@ -892,10 +886,19 @@ const handleDateChange = async (date: string) => {
           flexDirection: "column",
         }}
       >
-        <h4>Booking Calendar</h4>
+        {/* <h4>Booking Calendar</h4> */}
         <div
           className="calendar-scroll-container"
-          style={theme === "dark" ? { background: "#383838" } : {}}
+          style={
+            theme === "dark"
+              ? {
+                  background: "#383838",
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: "auto",
+                }
+              : { flex: 1, minHeight: 0, overflowY: "auto" }
+          }
         >
           <style>{`
                 .calendar-scroll-container .MuiInputLabel-root {
@@ -1008,8 +1011,7 @@ const handleDateChange = async (date: string) => {
                 onClick={() => {
                   setIsOpen(true);
                   fetchBookingById(calendarCellInfo.id);
-                
-                }}  
+                }}
                 variant="contained"
                 color="primary"
               >
@@ -1050,18 +1052,27 @@ const handleDateChange = async (date: string) => {
         onClose={() => setIsOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          className: `booking-dialog-paper`,
+          style: {
+            background: "transparent",
+            color: "var(--dialog-text)",
+          },
+          "data-theme": theme ? "dark" : "light",
+        }}
       >
         <DialogTitle>Update Booking</DialogTitle>
         <DialogContent>
           {/* Room Name */}
-           <Box mb={2}>
+          <Box mb={2}>
             <FormControl fullWidth>
               <InputLabel>Module Code</InputLabel>
               <Select
-               value={formData.name || ""}
-               onChange={(e) => {handleChange("name", e.target.value);
-                fetch_halls_by_moduleCode(e.target.value);
-               }}
+                value={formData.name || ""}
+                onChange={(e) => {
+                  handleChange("name", e.target.value);
+                  fetch_halls_by_moduleCode(e.target.value);
+                }}
               >
                 {moduleOptions.map((code) => (
                   <MenuItem key={code} value={code}>
@@ -1090,7 +1101,6 @@ const handleDateChange = async (date: string) => {
           </Box>
 
           {/* Module Code */}
-         
 
           {/* Date */}
           <Box mb={2}>
@@ -1111,9 +1121,7 @@ const handleDateChange = async (date: string) => {
               type="time"
               label="Start Time"
               InputLabelProps={{ shrink: true }}
-              value={
-                formData.start_time ? formData.start_time.slice(0, 5) : ""
-              }
+              value={formData.start_time ? formData.start_time.slice(0, 5) : ""}
               onChange={(e) => handleChange("start_time", e.target.value)}
               inputProps={{ step: 300 }} // 5-minute steps
             />
@@ -1139,7 +1147,6 @@ const handleDateChange = async (date: string) => {
           >
             Update
           </Button>
-          
         </DialogActions>
       </Dialog>
       {/* <RightDrawer /> */}
@@ -1148,18 +1155,29 @@ const handleDateChange = async (date: string) => {
         onClose={() => setIsSwap(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          className: `booking-dialog-paper ${
+            theme === "dark" ? "dark" : "light"
+          }`,
+          style: {
+            background: theme === "dark" ? " #23232b" : " #ffffff",
+            color: theme === "dark" ? "#f3f3f3" : " #222222",
+          },
+          "data-theme": theme,
+        }}
       >
         <DialogTitle>Swap Booking</DialogTitle>
         <DialogContent>
           {/* Room Name */}
-           <Box display="flex" mb={2} gap={2}>
+          <Box display="flex" mb={2} gap={2}>
             <FormControl fullWidth>
               <InputLabel>Module Code</InputLabel>
               <Select
-               value={formData.name || ""}
-               onChange={(e) => {handleChange("name", e.target.value);
-                fetch_halls_by_moduleCode(e.target.value);
-               }}
+                value={formData.name || ""}
+                onChange={(e) => {
+                  handleChange("name", e.target.value);
+                  fetch_halls_by_moduleCode(e.target.value);
+                }}
               >
                 {moduleOptions.map((code) => (
                   <MenuItem key={code} value={code}>
@@ -1168,7 +1186,7 @@ const handleDateChange = async (date: string) => {
                 ))}
               </Select>
             </FormControl>
-          
+
             <FormControl fullWidth>
               <InputLabel>Room Name</InputLabel>
               <Select
@@ -1183,7 +1201,7 @@ const handleDateChange = async (date: string) => {
                 ))}
               </Select>
             </FormControl>
-          
+
             <TextField
               fullWidth
               type="date"
@@ -1201,9 +1219,7 @@ const handleDateChange = async (date: string) => {
               type="time"
               label="Start Time"
               InputLabelProps={{ shrink: true }}
-              value={
-                formData.start_time ? formData.start_time.slice(0, 5) : ""
-              }
+              value={formData.start_time ? formData.start_time.slice(0, 5) : ""}
               onChange={(e) => handleChange("start_time", e.target.value)}
               inputProps={{ step: 300 }} // 5-minute steps
             />
@@ -1218,35 +1234,34 @@ const handleDateChange = async (date: string) => {
           </Box>
           <DialogTitle>Swap With</DialogTitle>
           <Box display="flex" mb={2} gap={2}>
-           <FormControl fullWidth>
-  <TextField
-    fullWidth
-    type="date"
-    label="Date"
-    InputLabelProps={{ shrink: true }}
-    value={swapData.date.slice(0, 10)}
-    onChange={(e) => handleDateChange(e.target.value)}
-  />
-</FormControl>
+            <FormControl fullWidth>
+              <TextField
+                fullWidth
+                type="date"
+                label="Date"
+                InputLabelProps={{ shrink: true }}
+                value={swapData.date.slice(0, 10)}
+                onChange={(e) => handleDateChange(e.target.value)}
+              />
+            </FormControl>
 
             <FormControl fullWidth>
-  <InputLabel>Module & Time</InputLabel>
-  <Select
-        labelId="module-time-label"
-        id="module-time-select"
-        value={swapData.id ?? ""}
-        label="Module & Time"
-        onChange={handleSelect}
-        // onChange={(e) => setSwapData(prev => ({...prev, name: e.target.value}))}
-      >
-        {bookingOptions.map((option) => (
-          <MenuItem key={option.id} value={option.id}>
-            {option.code} ({option.time})
-          </MenuItem>
-        ))}
-      </Select>
-</FormControl>
- 
+              <InputLabel>Module & Time</InputLabel>
+              <Select
+                labelId="module-time-label"
+                id="module-time-select"
+                value={swapData.id ?? ""}
+                label="Module & Time"
+                onChange={handleSelect}
+                // onChange={(e) => setSwapData(prev => ({...prev, name: e.target.value}))}
+              >
+                {bookingOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.code} ({option.time})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </DialogContent>
 
@@ -1261,7 +1276,6 @@ const handleDateChange = async (date: string) => {
           >
             Swap
           </Button>
-          
         </DialogActions>
       </Dialog>
     </div>

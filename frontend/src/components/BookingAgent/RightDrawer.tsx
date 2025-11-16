@@ -15,6 +15,8 @@ import Divider from '@mui/material/Divider';
 import axios from 'axios';
 import { fetchUserEmailFromProfile } from "../../services/api";
 import { log } from 'console';
+import { useTheme } from "../../context/ThemeContext";
+
 type SwapRequest = {
   id: number;
   from: string;
@@ -72,6 +74,9 @@ const [email, setEmail] = React.useState<string | null>(null);
     setOpen(open);
   };
 
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const handleCancel = (id: number) => {
     setRequests(requests.filter((req) => req.id !== id));
   };
@@ -125,18 +130,25 @@ console.log("id",id);
 
   const list = () => (
     <Box
+      className="right-drawer-inner"
       sx={{ width: 400, p: 2 }}
       role="presentation"
       onKeyDown={toggleDrawer(false)}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">Swap Requests</Typography>
-        <IconButton onClick={toggleDrawer(false)}>
+      <Box className="right-drawer-header" mb={2}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* <SwapHorizIcon /> */}
+          <Box>
+            <Typography variant="h6">Swap Requests</Typography>
+            <Typography variant="caption">{requests.length} open</Typography>
+          </Box>
+        </Box>
+        <Button onClick={toggleDrawer(false)} aria-label="Close drawer">
           <CloseIcon />
-        </IconButton>
+        </Button>
       </Box>
       <Divider />
-      <List>
+      <List className="swap-list">
         {requests.map((req) => (
           <ListItem key={req.id} sx={{ mb: 1 }} divider>
             <ListItemText
@@ -150,11 +162,19 @@ console.log("id",id);
                 </IconButton>
               ) : (
                 <>
-                  <IconButton edge="end" color="primary" onClick={() => handleSwap(req.id)}>
+                  <IconButton
+                    className="swap-icon-btn primary"
+                    onClick={() => handleSwap(req.id)}
+                    aria-label="Accept swap"
+                  >
                     <SwapHorizIcon />
                   </IconButton>
-                  <IconButton edge="end" color="error" onClick={() => handleReject(req.id)}>
-                    <CancelIcon />
+                  <IconButton
+                    className="swap-icon-btn danger"
+                    onClick={() => handleReject(req.id)}
+                    aria-label="Reject request"
+                  >
+                    <CloseIcon />
                   </IconButton>
                 </>
               )}
@@ -167,10 +187,24 @@ console.log("id",id);
 
   return (
     <div>
-      <Button variant="contained" onClick={toggleDrawer(true)}>
+      <Button
+        variant="contained"
+        className="btn-brown"
+        startIcon={<SwapHorizIcon />}
+        onClick={toggleDrawer(true)}
+        sx={{ textTransform: "none", borderRadius: "9999px" }}
+      >
         Open Swap Requests
       </Button>
-      <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={toggleDrawer(false)}
+        PaperProps={{
+          className: "right-drawer-paper",
+          "data-theme": isDark ? "dark" : "light",
+        }}
+      >
         {list()}
       </Drawer>
     </div>

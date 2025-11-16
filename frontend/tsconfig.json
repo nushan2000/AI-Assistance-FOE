@@ -1,26 +1,26 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "es6"
-        ],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true,
-        "module": "esnext",
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "isolatedModules": false,
-        "noEmit": true,
-        "jsx": "react-jsx"
-    },
-    "include": [
-        "src"
-    ]
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    // When using `moduleResolution: "node16"` TypeScript expects a matching
+    // `module` value that models Node's module output. Use "Node16" here
+    // to keep resolution and emit settings aligned.
+    "module": "Node16",
+    "moduleResolution": "node16",
+    // Temporarily silence TypeScript deprecation warnings that will be enforced in TS 7.0
+    // Set to "6.0" to ignore deprecations introduced before TS 6.0
+    "ignoreDeprecations": "5.0",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*", "src/global.d.ts"]
 }

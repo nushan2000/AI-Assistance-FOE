@@ -1,4 +1,4 @@
-import { getAccessToken } from './authAPI';
+import { getAccessToken } from "./authAPI";
 
 export async function fetchUserProfile() {
   const token = getAccessToken();
@@ -6,12 +6,12 @@ export async function fetchUserProfile() {
   const response = await fetch(process.env.REACT_APP_AUTH_URL + '/auth/me', {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   });
   if (!response.ok) {
-    throw new Error('Failed to fetch user profile');
+    throw new Error("Failed to fetch user profile");
   }
   return response.json();
 }
