@@ -16,6 +16,9 @@ import axios from 'axios';
 import { fetchUserEmailFromProfile } from "../../services/api";
 import { log } from 'console';
 import { useTheme } from "../../context/ThemeContext";
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import { Badge } from '@mui/material';
+import { useNotification } from '../../context/NotificationContext';
 
 type SwapRequest = {
   id: number;
@@ -29,38 +32,44 @@ type SwapRequest = {
   requester_email?:string;
 };
 
-export default function RightDrawer() {
+export default function RightDrawer(openProp:any) {
   const [open, setOpen] = React.useState(false);
-const [email, setEmail] = React.useState<string | null>(null);
+  const [email, setEmail] = React.useState<string | null>(null);
+  const [numberOfReceviedRequests, setNumberOfReceviedRequests] = React.useState(0);
+  const { notify } = useNotification();
+
   React.useEffect(() => {
     const getEmail = async () => {
       const userEmail = await fetchUserEmailFromProfile();
       console.log("userEmail",userEmail);
-      
+      fetchSwapRequests();
       setEmail(userEmail);
     };
     getEmail();
    
     
-  }, []);
+  }, [open,openProp]);
   // Example data
-  const [requests, setRequests] = React.useState<SwapRequest[]>([
-  //   { id: 1, from: 'Alice', to: 'You', message: 'Swap shift on Friday?', isSender: false },
-  //   { id: 2, from: 'You', to: 'Bob', message: 'Swap Saturday morning?', isSender: true },
-  //   { id: 3, from: 'Charlie', to: 'You', message: 'Swap Tuesday?', isSender: false },
-  // 
+  const [requests, setRequests] = React.useState<SwapRequest[]>([ 
   ]);
 
-  React.useEffect(() => {
-    fetchSwapRequests();
-  }, []);
 
   const fetchSwapRequests = async () => {
-    const response=await axios.get(`${process.env.REACT_APP_HBA_URL}/swap/get_all_requests`);
-    const filteredRequests = response.data.filter((req: SwapRequest) => req.requester_email === email || req.offerer_email === email);
-    setRequests(filteredRequests);
-    console.log("data",filteredRequests);
-    console.log("email",email);
+    try {
+      const response=await axios.get(`${process.env.REACT_APP_HBA_URL}/swap/get_all_requests`);
+      const filteredRequests = response.data.filter((req: SwapRequest) => req.requester_email === email || req.offerer_email === email);
+      setRequests(filteredRequests);
+
+      const filteredReceivedRequests = filteredRequests.filter((req: SwapRequest) => req.offerer_email === email);
+      setNumberOfReceviedRequests(filteredReceivedRequests.length);
+      console.log("data",filteredRequests);
+      console.log("email",email);
+      // notify('success', "✅ Swap requests fetched successfully!");
+    } catch (error) {
+      console.error("Error fetching swap requests:", error);
+      notify('error', "❌ Failed to fetch swap requests.");
+    }
+    
     
   }
 
@@ -89,18 +98,18 @@ const [email, setEmail] = React.useState<string | null>(null);
       `${process.env.REACT_APP_HBA_URL}/swap/respond?swap_id=${id}&response=approved`
     )
 
-    
     if (response.status === 200) {
-      
+        notify('success', "✅ Swap request approved successfully!");
         fetchSwapRequests();
         // Remove the request from the UI
         // setRequests(requests.filter((req) => req.id !== id));
         // Show success message
-        alert('Swap request rejected successfully');
+        // alert('Swap request rejected successfully');
       }
     } catch (error) {
-      console.error('Error approving swap request:', error);
-      alert('Failed to approve swap request');
+      notify('error', "❌ Failed to approve swap request.");
+      // console.error('Error approving swap request:', error);
+      // alert('Failed to approve swap request');
     }
     // setRequests(requests.filter((req) => req.id !== id));
   };
@@ -117,14 +126,16 @@ console.log("id",id);
 
       if (response.status === 200) {
         fetchSwapRequests();
+        notify('success', "✅ Swap request rejected successfully!");
         // Remove the request from the UI
         // setRequests(requests.filter((req) => req.id !== id));
         // Show success message
-        alert('Swap request rejected successfully');
+        // alert('Swap request rejected successfully');
       }
     } catch (error) {
-      console.error('Error rejecting swap request:', error);
-      alert('Failed to reject swap request');
+      notify('error', "❌ Failed to reject swap request.");
+      // console.error('Error rejecting swap request:', error);
+      // alert('Failed to reject swap request');
     }
   };
 
@@ -194,7 +205,10 @@ console.log("id",id);
         onClick={toggleDrawer(true)}
         sx={{ textTransform: "none", borderRadius: "9999px" }}
       >
-        Open Swap Requests
+        Open Swap Requests 
+        <Badge badgeContent={numberOfReceviedRequests} color="primary" sx={{ ml: 1 }} >
+      <NotificationsActiveIcon />
+    </Badge>
       </Button>
       <Drawer
         anchor="right"

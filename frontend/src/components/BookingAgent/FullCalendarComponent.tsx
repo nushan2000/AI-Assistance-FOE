@@ -474,6 +474,7 @@ const [FC, setFC] = useState<any>(null);
 
       setFC(() => fullcalendar);
       setCalendarPlugins([timeGridPlugin, interactionPlugin]);
+      // setIsOpen(true);
     };
 
     loadCalendar();
@@ -571,6 +572,7 @@ try {
     const response = await axios.post(`${process.env.REACT_APP_HBA_URL}/booking/add`, formData);
     notify('success', "✅ Booking created successfully!");
     console.log("✅ Booking created:", response.data);
+    setIsOpen(false);
     } catch (error: any) {
       notify("error", "❌ Failed to create booking");
       console.error(error);
@@ -617,6 +619,7 @@ try {
       return;
     }
     createBooking();
+
   };
 
 
@@ -706,7 +709,7 @@ const fetch_halls_by_moduleCode = async (moduleCode: string) => {
         >
           Manual Booking
         </Button>
-        <RightDrawer />
+        <RightDrawer openProp={isOpen} />
       </div>
       {/* <div className="room-select-row">
         <FormControl size="small" sx={{ minWidth: 140 }}>

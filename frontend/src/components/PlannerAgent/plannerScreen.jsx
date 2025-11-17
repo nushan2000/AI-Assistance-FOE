@@ -155,7 +155,7 @@ const [selectedFile, setSelectedFile] = React.useState(null);
   );
 }
 
-export default function PlannerScreen() {
+export default function PlannerScreen({ isFetching }) {
   const [tab, setTab] = React.useState(0);
   const { theme: appTheme } = useAppTheme();
   const muiTheme = useMuiTheme();
@@ -282,7 +282,7 @@ const [selectedFile, setSelectedFile] = React.useState(null);
     getCalenderData();
     // we intentionally only run when semester changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [semester]);
+  }, [semester, isFetching]);
 
   return (
     <Box sx={{ flexGrow: 1 }} data-theme={appTheme}>

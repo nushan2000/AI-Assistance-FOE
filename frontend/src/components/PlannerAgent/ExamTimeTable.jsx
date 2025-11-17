@@ -153,7 +153,7 @@ function TimetableTable({ timetable }) {
   );
 }
 
-export default function ExamTimeTable() {
+export default function ExamTimeTable({ isFetching }) {
   const [tab, setTab] = React.useState(0);
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [theme, setTheme] = React.useState("light");
@@ -279,7 +279,7 @@ export default function ExamTimeTable() {
   // Fetch when component loads or semester changes
   useEffect(() => {
     getCalenderData();
-  }, [semester]);
+  }, [semester, isFetching]);
 
   return (
     <Box sx={{ flexGrow: 1 }} data-theme={appTheme}>

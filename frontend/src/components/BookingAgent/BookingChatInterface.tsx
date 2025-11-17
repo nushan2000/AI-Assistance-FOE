@@ -783,13 +783,17 @@ const create_swap_request = async () => {
   try {
     const response = await axios.post(process.env.REACT_APP_HBA_URL + `/swap/request`, {
       requested_by_email: email,
-      requested_booking_id: swapData.id,
-      offered_booking_id: Number(calendarCellInfo.id)
+      requested_booking_id:Number(calendarCellInfo.id),
+      offered_booking_id: Number(swapData.id)
     });
+    notify('success', "✅ Swap request created successfully!");
+    setIsSwap(false)
     return response.data;
     
   } catch (error) {
-    console.error("Error creating swap request:", error);
+    notify('error', "❌ Failed to create swap request.");
+
+    // console.error("Error creating swap request:", error);
     throw error;
   }
 };
