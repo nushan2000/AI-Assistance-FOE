@@ -8,22 +8,17 @@ import os
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
-from .tool_chinook_sqlagent import query_chinook_sqldb
-from .tool_travel_sqlagent import query_travel_sqldb
-from .tool_lookup_policy_rag import lookup_swiss_airline_policy
 from .tool_tavily_search import load_tavily_search_tool
-from .tool_stories_rag import lookup_stories
 from .load_tools_config import LoadToolsConfig
 from .agent_backend import State, BasicToolNode, route_tools, plot_agent_schema
-from .tool_student_handbook_rag import lookup_student_handbook
-from .tool_exam_manual_rag import lookup_exam_manual
-from .tool_by_law_rag import lookup_by_law
+from .procurement_guidelines_rag_tool import lookup_procurement_guidelines
+# from .tool_by_law_rag import lookup_by_law
 from .tool_tavily_search import load_tavily_search_tool
 from .tool_student_handbook_rag import lookup_student_handbook
 from .tool_exam_manual_rag import lookup_exam_manual
 from .tool_by_law_rag import lookup_by_law
 from .tool_tavily_search import load_tavily_search_tool
-    
+from .tool_establishment_code_rag import lookup_establishment_code   
 
 TOOLS_CFG = LoadToolsConfig()
 
@@ -80,10 +75,11 @@ def build_graph():
     # Load tools with their proper configs
     search_tool = load_tavily_search_tool(TOOLS_CFG.tavily_search_max_results)
     tools = [
-             lookup_swiss_airline_policy,
              lookup_exam_manual,
              lookup_student_handbook,
              lookup_by_law,
+             lookup_procurement_guidelines,
+             lookup_establishment_code,
              search_tool
             #  lookup_stories,
             #  query_travel_sqldb,
@@ -102,13 +98,15 @@ def build_graph():
     tool_node = BasicToolNode(
         tools=[
             
-            lookup_swiss_airline_policy,
             lookup_exam_manual,
             lookup_student_handbook,
             lookup_by_law,
+            lookup_procurement_guidelines,
+            lookup_establishment_code,
             search_tool
            
         ])
+    
     graph_builder.add_node("tools", tool_node)
     # The `tools_condition` function returns "tools" if the chatbot asks to use a tool, and "__end__" if
     # it is fine directly responding. This conditional routing defines the main agent loop.
