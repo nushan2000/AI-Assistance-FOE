@@ -2,7 +2,7 @@
 /* .calendar-scroll-container styles for calendar container */
 .calendar-scroll-container {
   position: relative;
-  background: #DDDDDD;
+  background: #dddddd;
   padding: 20px 0;
   border-radius: 20px;
 }
@@ -12,7 +12,7 @@
 /* .calendar-status-card styles for selected cell info */
 .calendar-status-card {
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(90,50,50,0.10);
+  box-shadow: 0 2px 12px rgba(90, 50, 50, 0.1);
   padding: 1.2rem 2rem;
   min-width: 260px;
   border: 1px solid #e1e1e1;
@@ -23,7 +23,7 @@
   font-weight: 500;
 }
 .calendar-status-card.dark {
-  box-shadow: 0 2px 12px rgba(30,30,60,0.25);
+  box-shadow: 0 2px 12px rgba(30, 30, 60, 0.25);
   border: 1px solid #333;
   background: #23232b;
   color: #f3f3f3;
@@ -32,12 +32,12 @@
   margin-bottom: 8px;
   font-weight: 700;
   font-size: 1.08rem;
-  color: #5A3232;
+  color: #5a3232;
 }
 .calendar-status-card.dark .calendar-status-title {
   color: #e0baba;
 }
- 
+
 .dark-theme .calendar-scroll-container .MuiInputBase-root,
 .dark-theme .calendar-scroll-container .MuiSelect-select {
   background: #232323;
@@ -58,10 +58,10 @@
   --text-color: #ffffff;
   --input-bg: #383838;
   --border-color: #444444;
-  --button-bg: #5A3232;
-  --button-hover: #6A3A3A;
-  --quick-action-bg: #5A3232;
-  --quick-action-hover: #6A3A3A;
+  --button-bg: #5a3232;
+  --button-hover: #6a3a3a;
+  --quick-action-bg: #5a3232;
+  --quick-action-hover: #6a3a3a;
   --user-message-bg: #4a4a4a;
   --user-message-text: #ffffff;
   --assistant-message-bg: #3a3a3a;
@@ -69,18 +69,17 @@
   --shadow: rgba(0, 0, 0, 0.5);
 }
 
-
 /* Light Theme */
 [data-theme="light"],
 .light-theme {
   --primary-bg: #ffffff;
-  --secondary-bg: #DDDDDD;
+  --secondary-bg: #dddddd;
   --chat-bg: #ffffff;
   --text-color: #333333;
   --input-bg: #ffffff;
   --border-color: #e1e1e1;
-  --button-bg: #6A3A3A;
-  --button-hover: #5A3232;
+  --button-bg: #6a3a3a;
+  --button-hover: #5a3232;
   --quick-action-bg: rgba(90, 50, 50, 0.7);
   --quick-action-hover: rgba(74, 34, 34, 0.7);
   --user-message-bg: #f0f0f0;
@@ -94,7 +93,7 @@
 .light-theme .left-sidebar-header,
 .light-theme .left-sidebar-booking,
 .light-theme .calendar-scroll-container {
-  background: #DDDDDD !important;
+  background: #dddddd !important;
 }
 
 /* Main Layout - Three Column */
@@ -104,7 +103,8 @@
   height: 100vh;
   background: var(--chat-bg);
   color: var(--text-color);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
   position: relative;
   overflow: hidden;
 }
@@ -118,7 +118,7 @@
   border-radius: 0;
 }
 .calendar-scroll-container {
-  max-height: 85vh; /* or any appropriate height */
+  max-height: 100vh; /* or any appropriate height */
   overflow-y: auto;
   background-color: #ffffff;
   padding: 10px;
@@ -146,7 +146,6 @@
 }
 
 /* Light Theme Chat History */
-
 
 .retry-btn {
   display: block;
@@ -475,7 +474,7 @@
   background-color: var(--code-bg);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.9em;
 }
 
@@ -613,9 +612,15 @@
   animation: typingBounce 1.4s infinite ease-in-out;
 }
 
-.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0s; }
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0s;
+}
 
 .typing-dots {
   display: flex;
@@ -630,8 +635,12 @@
   animation: typingBounce 1.4s infinite ease-in-out;
 }
 
-.typing-dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
 
 /* Focus and accessibility */
 .theme-toggle-btn:focus,
@@ -647,7 +656,7 @@
   .message-content {
     border-width: 2px;
   }
-  
+
   .message-input {
     border-width: 3px;
   }
@@ -663,12 +672,11 @@
     animation: none;
     transition: none;
   }
-  
+
   .typing-dot {
     animation: none;
   }
 }
-
 
 /* Recommendations Styling */
 .recommendation-message-text {
@@ -694,7 +702,7 @@
 }
 
 .recommendations-header.light {
-  color: #5A3232;
+  color: #5a3232;
 }
 
 .recommendations-grid {
@@ -716,13 +724,13 @@
 .inline-recommendation-card.dark {
   background: linear-gradient(135deg, #2a2a32 0%, #323238 100%);
   border: 1px solid #4a4a52;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 2px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .inline-recommendation-card.light {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fb 100%);
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px rgba(90, 50, 50, 0.08), 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(90, 50, 50, 0.08), 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .inline-recommendation-card:hover {
@@ -735,8 +743,8 @@
 }
 
 .inline-recommendation-card.light:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  border-color: #5A3232;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: #5a3232;
 }
 
 .recommendation-header {
@@ -900,4 +908,3 @@
 .book-button-icon {
   margin-right: 8px;
 }
-
