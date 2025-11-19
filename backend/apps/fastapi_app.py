@@ -39,7 +39,10 @@ app = FastAPI(title="AI Agent API", version="1.0.0")
 # Add CORS middleware to allow React frontend to communicate
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # React dev server
+    # Echo allowed explicit origins when credentials are used. Using '*' with
+    # `allow_credentials=True` is not permitted by browsers and can result in
+    # missing CORS headers. Keep explicit dev origins here.
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -181,13 +184,10 @@ async def process_chat_message(session_id: str, user_id: str, user_message: str)
 # ---------------------------------------------------------------------------
 
 
-@app.post("/chat/voice", response_model=ChatResponse)
+@app.post("/chat/voice")
 async def chat_voice_endpoint(
-    # session_id: str = "default",
-    # user_id: str = "anonymous",
     session_id: str = Form("default"),
     user_id: str = Form("anonymous"),
-
     file: UploadFile = File(...)
 ):
     temp_file_path = None
@@ -204,14 +204,44 @@ async def chat_voice_endpoint(
         with open(temp_file_path, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
-        # Convert if needed
-        if ext not in [".wav", ".mp3"]:
-            converted_file_path = f"converted_{uuid4()}.wav"
-            audio = AudioSegment.from_file(temp_file_path)
-            audio.export(converted_file_path, format="wav")
-            audio_path = converted_file_path
-        else:
+        # Determine incoming format. Prefer explicit content-type when available
+        content_type = getattr(file, 'content_type', None) or ''
+        detected_format = None
+        if content_type.startswith('audio/'):
+            # e.g. audio/webm, audio/ogg, audio/mpeg or 'audio/webm;codecs=opus'
+            detected_format = content_type.split('/', 1)[1]
+            # strip any parameters after semicolon (e.g. 'webm;codecs=opus' -> 'webm')
+            detected_format = detected_format.split(';', 1)[0].strip().lower()
+            # Normalize common names
+            if detected_format == 'mpeg':
+                detected_format = 'mp3'
+
+        # Fallback: use file extension (without dot)
+        if not detected_format and ext:
+            detected_format = ext.lstrip('.')
+
+        # AssemblyAI supports many audio container formats (mp3, wav, m4a, mp4, webm, ogg, aac).
+        # If the uploaded file is in a supported format, we can pass it directly to AssemblyAI
+        # and avoid server-side conversion (which requires ffmpeg). This reduces server
+        # dependencies and handles browser-recorded webm/opus files directly.
+        SUPPORTED_BY_ASSEMBLYAI = {".wav", ".mp3", ".mp4", ".m4a", ".webm", ".ogg", ".aac"}
+
+        if ext in SUPPORTED_BY_ASSEMBLYAI:
             audio_path = temp_file_path
+        else:
+            # Fall back to conversion to wav for unsupported formats
+            converted_file_path = f"converted_{uuid4()}.wav"
+            try:
+                if detected_format:
+                    audio = AudioSegment.from_file(temp_file_path, format=detected_format)
+                else:
+                    audio = AudioSegment.from_file(temp_file_path)
+
+                audio.export(converted_file_path, format="wav")
+                audio_path = converted_file_path
+            except Exception as e:
+                # Common failure is missing ffmpeg or unsupported input format
+                raise HTTPException(status_code=500, detail=f"Audio conversion failed (ffmpeg/pydub required). Detected format='{detected_format}'. Error: {e}")
 
         print(f"[VOICE] Transcribing: {audio_path}")
 
@@ -225,25 +255,66 @@ async def chat_voice_endpoint(
         user_message = transcript.text
         print(f"[VOICE TEXT] {user_message}")
 
-        # 🟢 USE SAME LOGIC AS TEXT CHAT
-        bot_response, conversation_history = await process_chat_message(
-            session_id, user_id, user_message
+        # Persist the transcribed user message but DO NOT kick off agent routing here.
+        # This keeps the user-visible transcript decoupled from the potentially long-running
+        # agent processing. The frontend will fetch the saved transcript via a separate GET
+        # endpoint and then call /chat to trigger agent routing when ready.
+        await mongo_db.messages.insert_one(
+            message_doc(session_id, user_id, "user", user_message)
         )
 
-        return ChatResponse(
-            response=bot_response,
-            conversation_history=conversation_history,
-            session_id=session_id
+        # Update metadata/topic using the raw transcript
+        await mongo_db.sessions.update_one(
+            {"_id": session_id},
+            {"$set": {"updated_at": datetime.utcnow(), "topic": user_message}},
         )
+
+        # Return a minimal acknowledgement; the frontend should call the new GET endpoint
+        # `/chat/voice/{session_id}/transcript` to retrieve the saved transcript and then
+        # call `/chat` to perform agent routing.
+        return {"status": "ok", "session_id": session_id}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Voice processing failed: {e}")
-
     finally:
         for path in [temp_file_path, converted_file_path]:
             if path and os.path.exists(path):
-                os.remove(path)
-                print(f"[DEBUG] Deleted {path}")
+                try:
+                    os.remove(path)
+                    print(f"[DEBUG] Deleted {path}")
+                except PermissionError as pe:
+                    # On Windows a file can sometimes be locked briefly by another process.
+                    # Log and continue; avoid crashing on cleanup.
+                    print(f"[DEBUG] Could not delete {path} due to PermissionError: {pe}")
+                except Exception as e:
+                    print(f"[DEBUG] Failed to delete {path}: {e}")
+
+
+@app.get("/chat/voice/{session_id}/transcript")
+async def get_latest_voice_transcript(session_id: str, user_id: str = "anonymous"):
+    """
+    Retrieve the latest transcribed user message for a session. This lets the frontend
+    display the converted text immediately (from AssemblyAI) and then call `/chat`
+    to trigger agent routing separately.
+    """
+    try:
+        # Find the most recent user message for this session
+        doc = await mongo_db.messages.find_one(
+            {"session_id": session_id, "user_id": user_id, "role": "user"},
+            sort=[("timestamp", -1)],
+        )
+        if not doc:
+            raise HTTPException(status_code=404, detail="No transcript found for session")
+
+        return {
+            "transcript": doc.get("content", ""),
+            "session_id": session_id,
+            "timestamp": doc.get("timestamp"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving transcript: {e}")
 
 
 
@@ -322,6 +393,81 @@ async def chat_endpoint(chat_message: ChatMessage):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
+
+
+@app.post("/chat/route", response_model=ChatResponse)
+async def route_latest_user(session_id: str, user_id: str = "anonymous"):
+    """
+    Route the latest persisted user message for the given session through the agent.
+    This endpoint does NOT insert an additional user message (useful when voice uploads
+    already persisted the transcript). It will generate the assistant response and
+    persist only the assistant reply.
+    """
+    try:
+        # Load all messages for session/user
+        cursor = mongo_db.messages.find({"session_id": session_id, "user_id": user_id}).sort("timestamp", 1)
+        docs = []
+        async for doc in cursor:
+            docs.append(doc)
+
+        if not docs:
+            raise HTTPException(status_code=404, detail="No messages for session")
+
+        # Find index of last user message
+        last_user_idx = -1
+        for i in range(len(docs) - 1, -1, -1):
+            if docs[i].get("role") == "user":
+                last_user_idx = i
+                break
+
+        if last_user_idx == -1:
+            raise HTTPException(status_code=404, detail="No user message found to route")
+
+        # Build current_history pairs from messages before last_user_idx
+        current_history = []
+        i = 0
+        while i < last_user_idx:
+            if docs[i].get("role") == "user":
+                user_msg = docs[i].get("content")
+                bot_msg = ""
+                # look ahead for assistant
+                if i + 1 < len(docs) and docs[i + 1].get("role") == "assistant":
+                    bot_msg = docs[i + 1].get("content")
+                    i += 1
+                current_history.append([user_msg, bot_msg])
+            i += 1
+
+        # The message to route is the last user message
+        user_message = docs[last_user_idx].get("content")
+
+        # Generate assistant response using ChatBot
+        _, updated_chatbot = ChatBot.respond(current_history, user_message)
+
+        bot_response = updated_chatbot[-1][1] if updated_chatbot else "Sorry, I couldn't process your message."
+
+        # Persist assistant reply only
+        await mongo_db.messages.insert_one(message_doc(session_id, user_id, "assistant", bot_response))
+
+        # Update session metadata
+        await mongo_db.sessions.update_one(
+            {"_id": session_id},
+            {"$set": {"updated_at": datetime.utcnow(), "topic": user_message}},
+        )
+
+        # Build conversation history to return
+        conversation_history = []
+        for u, b in updated_chatbot:
+            conversation_history.extend([
+                {"role": "user", "content": u},
+                {"role": "assistant", "content": b}
+            ])
+
+        return ChatResponse(response=bot_response, conversation_history=conversation_history, session_id=session_id)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error routing message: {e}")
 
 @app.post("/feedback")
 async def feedback_endpoint(feedback: FeedbackRequest):

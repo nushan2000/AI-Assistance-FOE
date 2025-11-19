@@ -291,6 +291,35 @@ class ApiService {
       throw error;
     }
   }
+
+  // Route the latest persisted user message for a session through the agent
+  // (Used for voice uploads that already saved the transcript)
+  async routeLatest(
+    sessionId: string = "default",
+    userId?: string
+  ): Promise<ChatResponse> {
+    try {
+      const url = new URL(`${this.baseUrl}/chat/route`);
+      if (sessionId) url.searchParams.append("session_id", sessionId);
+      if (userId) url.searchParams.append("user_id", userId);
+
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
+      updateAccessTokenFromResponse(response);
+      handleAuthError(response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error routing latest message:", error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();

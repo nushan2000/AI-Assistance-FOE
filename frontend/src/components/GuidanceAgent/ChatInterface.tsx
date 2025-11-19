@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,6 +10,9 @@ import {
 import "./ChatInterface.css";
 import { useTheme } from "../../context/ThemeContext";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
+import MicIcon from "@mui/icons-material/Mic";
+import IconButton from "@mui/material/IconButton";
+import VoiceRecorder from "./VoiceRecorder";
 
 interface ChatInterfaceProps {
   sessionId?: string;
@@ -48,6 +52,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [userSpecificSessionId, setUserSpecificSessionId] =
     useState<string>(sessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recorderRef = useRef<any>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const pendingVoiceIndexRef = useRef<number | null>(null);
+  const [voiceUploading, setVoiceUploading] = useState(false);
 
   // Get current user email from /auth/me endpoint
   useEffect(() => {
@@ -128,7 +136,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const formatMessage = (content: string): JSX.Element => {
     // Split content into paragraphs
     const paragraphs = content.split("\n\n").filter((p) => p.trim() !== "");
-
     return (
       <div className="formatted-message">
         {paragraphs.map((paragraph, index) => {
@@ -183,20 +190,36 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading || !currentUser) return;
+    await sendText(inputValue.trim());
+  };
 
-    const userMessage = inputValue.trim();
-    setInputValue("");
+  // Shared send logic for text (used by keyboard send and by voice transcription)
+  // Shared send logic for text (used by keyboard send and by voice transcription)
+  // options: skipLocal -> don't add the user message to UI (used when UI already has a placeholder)
+  // force -> bypass current isLoading guard (used when upload already set loading)
+  const sendText = async (
+    text: string,
+    options?: { skipLocal?: boolean; force?: boolean }
+  ) => {
+    const skipLocal = options?.skipLocal || false;
+    const force = options?.force || false;
+    if (!text || (!force && isLoading) || !currentUser) return;
+    const userMessage = text;
+    // Clear input field if this was typed
+    setInputValue((prev) => (prev === text ? "" : prev));
     setIsLoading(true);
     setError(null);
 
-    // Add user message to UI immediately
-    const newUserMessage: ChatMessage = { role: "user", content: userMessage };
-    setMessages((prev) => [...prev, newUserMessage]);
-
-    // Debugging: log userId and sessionId before sending
+    // Add user message to UI immediately unless caller provided a placeholder
+    if (!skipLocal) {
+      const newUserMessage: ChatMessage = {
+        role: "user",
+        content: userMessage,
+      };
+      setMessages((prev) => [...prev, newUserMessage]);
+    }
 
     try {
-      // Build guidance_filter to send to backend. If 'all' is selected or nothing selected, send 'all'.
       const guidanceToSend =
         !guidanceFilters ||
         guidanceFilters.length === 0 ||
@@ -204,7 +227,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           ? "all"
           : guidanceFilters.join(",");
 
-      // Augment message sent to backend with a human-readable directive when a restricted source is selected.
       let outgoingMessage = userMessage;
       if (guidanceToSend !== "all") {
         const readable = guidanceFilters
@@ -229,11 +251,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
       setMessages((prev) => [...prev, assistantMessage]);
       loadChatSessions();
-      // Reset guidance filters to initial state after successful send
       setGuidanceFilters(["all"]);
     } catch (error) {
       setError("Failed to send message. Please try again.");
-      setMessages((prev) => prev.slice(0, -1));
+      if (!options?.skipLocal) setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -306,6 +327,120 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  // Called by VoiceRecorder when a raw transcription string is available
+  const handleVoiceTranscription = (text: string) => {
+    // Voice transcription is handled by the upload->GET->handleVoiceResponse flow.
+    // Do not write the transcription into the textarea; voice messages should
+    // appear directly as a user bubble instead.
+    return;
+  };
+
+  // Called when upload starts — insert a pending user bubble
+  const handleVoiceSend = () => {
+    const placeholder: ChatMessage = {
+      role: "user",
+      content: "Sending voice...",
+    };
+    setMessages((prev) => {
+      const next = [...prev, placeholder];
+      pendingVoiceIndexRef.current = next.length - 1;
+      return next;
+    });
+    // mark upload in progress; do not set assistant loading yet
+    setVoiceUploading(true);
+  };
+
+  // Called when backend returns full response for voice upload
+  const handleVoiceResponse = (resp: any) => {
+    // Extract transcript
+    let transcript =
+      resp?.transcript ||
+      resp?.text ||
+      resp?.transcription ||
+      resp?.result ||
+      "";
+    if (!transcript && resp?.conversation_history) {
+      const ch = resp.conversation_history as any[];
+      for (let i = ch.length - 1; i >= 0; i--) {
+        if (ch[i]?.role === "user" && ch[i]?.content) {
+          transcript = ch[i].content;
+          break;
+        }
+      }
+    }
+
+    const assistantText = resp?.response || "";
+
+    // If server already returned an assistant response, apply both user and assistant
+    if (assistantText) {
+      setMessages((prev) => {
+        const next = [...prev];
+        const idx = pendingVoiceIndexRef.current;
+        if (idx !== null && idx >= 0 && idx < next.length) {
+          next[idx] = { role: "user", content: transcript || "(voice)" };
+        } else {
+          next.push({ role: "user", content: transcript || "(voice)" });
+        }
+        // Append assistant reply
+        next.push({ role: "assistant", content: assistantText });
+        return next;
+      });
+      // clear pending marker and loading
+      pendingVoiceIndexRef.current = null;
+      setVoiceUploading(false);
+      setIsLoading(false);
+      // Refresh sessions metadata
+      loadChatSessions();
+    } else if (transcript) {
+      // No assistant reply yet: replace the pending user bubble with the transcript
+      setMessages((prev) => {
+        const next = [...prev];
+        const idx = pendingVoiceIndexRef.current;
+        if (idx !== null && idx >= 0 && idx < next.length) {
+          next[idx] = { role: "user", content: transcript };
+        } else {
+          next.push({ role: "user", content: transcript });
+        }
+        return next;
+      });
+      // clear pending marker and mark upload done
+      pendingVoiceIndexRef.current = null;
+      setVoiceUploading(false);
+      // Now route the transcript through the regular sendText flow (skip adding local user msg)
+      // Use the new /chat/route endpoint which routes the latest persisted user
+      // message (saved by /chat/voice) through the agent without inserting
+      // another duplicate user message.
+      (async () => {
+        try {
+          setIsLoading(true);
+          const userId = currentUser?.email;
+          const resp = await apiService.routeLatest(
+            userSpecificSessionId,
+            userId
+          );
+          const assistantMessage: ChatMessage = {
+            role: "assistant",
+            content: resp.response,
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          loadChatSessions();
+        } catch (e) {
+          setError("Failed to route voice message to agent");
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    } else {
+      // no transcript and no assistant reply: show error and clean up
+      setMessages((prev) =>
+        prev.filter((_, i) => i !== pendingVoiceIndexRef.current)
+      );
+      pendingVoiceIndexRef.current = null;
+      setVoiceUploading(false);
+      setError("No transcription returned from server");
+    }
+  };
+
   return (
     <div
       className={`chat-interface ${
@@ -338,9 +473,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 )}
                 <div className="message-content">
                   <div className="message-text">
-                    {message.role === "assistant"
-                      ? formatMessage(message.content)
-                      : message.content}
+                    {message.role === "assistant" ? (
+                      formatMessage(message.content)
+                    ) : // If this is the pending voice upload bubble, show a small loading spinner there as well
+                    index === pendingVoiceIndexRef.current ? (
+                      <span className="pending-voice">
+                        <span className="pending-spinner" aria-hidden="true">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </span>
+                        {/* <span style={{ marginLeft: 8 }}>Sending voice...</span> */}
+                      </span>
+                    ) : (
+                      message.content
+                    )}
                   </div>
                 </div>
                 {message.role === "user" && (
@@ -480,6 +627,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <polygon points="22,2 15,22 11,13 2,9 22,2" />
                 </svg>
               </button>
+
+              <IconButton
+                aria-label={isRecording ? "Stop recording" : "Start recording"}
+                onClick={() => {
+                  if (!recorderRef.current) return;
+                  if (recorderRef.current.isRecording())
+                    recorderRef.current.stop();
+                  else recorderRef.current.start();
+                }}
+                title={isRecording ? "Stop recording" : "Record voice"}
+                style={{ color: isRecording ? "#c62828" : undefined }}
+              >
+                <MicIcon />
+              </IconButton>
+
+              <VoiceRecorder
+                ref={recorderRef}
+                showControls={false}
+                sessionId={userSpecificSessionId}
+                userEmail={currentUser?.email}
+                onTranscription={handleVoiceTranscription}
+                onVoiceSend={handleVoiceSend}
+                onVoiceResponse={handleVoiceResponse}
+                onRecordingChange={(r) => setIsRecording(r)}
+              />
+
               <button
                 onClick={handleNewChat}
                 className="input-btn new-chat-btn"
