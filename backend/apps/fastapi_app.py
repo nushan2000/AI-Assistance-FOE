@@ -342,18 +342,30 @@ async def feedback_endpoint(feedback: FeedbackRequest):
 @app.delete("/chat/{session_id}")
 async def clear_chat(session_id: str, user_id: str = "anonymous"):
     """
-    Clear chat history for a specific user's session
+    Delete chat session + all messages for this user/session.
     """
     try:
+        # Delete all messages in MongoDB
+        await mongo_db.messages.delete_many({"session_id": session_id, "user_id": user_id})
+
+        # Delete session metadata document in MongoDB
+        await mongo_db.sessions.delete_one({"_id": session_id, "user_id": user_id})
+
+        # Also clear in-memory if used anywhere
         if user_id in user_chat_sessions and session_id in user_chat_sessions[user_id]:
             del user_chat_sessions[user_id][session_id]
+
         if user_id in user_session_metadata and session_id in user_session_metadata[user_id]:
             del user_session_metadata[user_id][session_id]
-        
-        return {"message": f"Chat history cleared for session {session_id}", "status": "success"}
-        
+
+        return {
+            "message": f"Chat session {session_id} deleted",
+            "status": "success"
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing chat: {str(e)}")
+
 
 @app.get("/chat/{session_id}/history")
 async def get_chat_history(session_id: str, user_id: str = "anonymous"):
