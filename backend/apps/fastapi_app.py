@@ -183,6 +183,7 @@ async def create_chat_session(request: CreateSessionRequest):
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
+
 @app.post("/ruh/chat", response_model=ChatResponse)
 async def ruh_chat_endpoint(chat_message: ChatMessage):
     session_id = chat_message.session_id
