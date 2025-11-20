@@ -4,7 +4,7 @@ import "../BookingAgent/BookingChatInterface.css";
 import BackupIcon from "@mui/icons-material/Backup";
 import DescriptionIcon from "@mui/icons-material/Description";
 import PlannerScreen from "./plannerScreen";
-import ExamTimeTable from "./ExamTimeTable";
+import ExamTimeTable from "./ExamTimeTable2";
 import axios from "axios";
 // import Home from "./Home";
 
