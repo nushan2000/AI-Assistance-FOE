@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 import logging
+import re
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydub import AudioSegment
@@ -137,9 +138,63 @@ async def process_chat_message(session_id: str, user_id: str, user_message: str,
     await mongo_db.messages.insert_one(message_doc(session_id, user_id, "assistant", bot_response))
 
     # Update session metadata (upsert to be safe)
+    # Derive a better topic than simply using the latest raw user message.
+    # Prefer the first user message in the conversation that isn't a greeting
+    # and contains at least three words (or three meaningful tokens). If none
+    # are found, fall back to the latest user message or a generic label.
+    def _extract_topic_from_conversation(conv: List[tuple]) -> str:
+        greetings = {"hi", "hello", "hey", "hiya", "greetings", "heythere", "hellothere"}
+        stop_words = {
+            'i', 'am', 'is', 'are', 'was', 'were', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at',
+            'to', 'for', 'of', 'with', 'by', 'can', 'you', 'help', 'me', 'my', 'what', 'how', 'when', 'where',
+            'why', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'please', 'thanks', 'thank'
+        }
+
+        for item in conv:
+            # each item may be (user, assistant)
+            if not item:
+                continue
+            user_msg = item[0] if isinstance(item, (list, tuple)) and len(item) > 0 else str(item)
+            if not user_msg:
+                continue
+            tokens = re.findall(r"\b\w+\b", user_msg.lower())
+            if not tokens:
+                continue
+            # Skip obvious greetings like "hi", "hello"
+            if all(t in greetings for t in tokens):
+                continue
+
+            # Remove stop words and short tokens
+            meaningful = [t for t in tokens if t not in stop_words and len(t) > 2]
+
+            # Prefer at least 3 meaningful tokens, otherwise use first 3 tokens
+            chosen = None
+            if len(meaningful) >= 3:
+                chosen = meaningful[:4]
+            elif len(tokens) >= 3:
+                chosen = tokens[:4]
+            else:
+                # message too short; try next message
+                continue
+
+            topic = ' '.join(w.capitalize() for w in chosen)
+            return topic if len(topic) <= 50 else topic[:47] + "..."
+
+        # Fallbacks
+        # If we couldn't find a good multi-word topic in history, try latest message
+        latest = conv[-1][0] if conv and isinstance(conv[-1], (list, tuple)) else user_message
+        if latest and isinstance(latest, str):
+            tokens = re.findall(r"\b\w+\b", latest)
+            if len(tokens) >= 3:
+                topic = ' '.join(tokens[:4])
+                return topic if len(topic) <= 50 else topic[:47] + "..."
+
+        return "New Chat"
+
+    topic_value = _extract_topic_from_conversation(updated_chatbot if updated_chatbot else [[user_message, ""]])
     await mongo_db.sessions.update_one(
         {"_id": session_id},
-        {"$set": {"updated_at": datetime.utcnow(), "topic": user_message, "user_id": user_id}},
+        {"$set": {"updated_at": datetime.utcnow(), "topic": topic_value, "user_id": user_id}},
         upsert=True,
     )
 
