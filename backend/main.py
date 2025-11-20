@@ -11,7 +11,7 @@ import sys
 import os
 import uvicorn
 
-def run_fastapi(host="0.0.0.0", port=8000, reload=True):
+def run_fastapi(host="127.0.0.1", port=9000, reload=True):
     """Run the FastAPI application"""
     print(f"Starting FastAPI server on {host}:{port}")
     print(f"API will be available at: http://{host}:{port}")
@@ -27,14 +27,14 @@ def main():
     parser = argparse.ArgumentParser(description="AgentGraph FastAPI Backend Server")
     parser.add_argument(
         "--host", 
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)"
+        default="127.0.0.1",
+        help="Host to bind to (default: 127.0.0.1)"
     )
     parser.add_argument(
         "--port", 
         type=int,
-        default=8000,
-        help="Port to bind to (default: 8000)"
+        default=9000,
+        help="Port to bind to (default: 9000)"
     )
     parser.add_argument(
         "--no-reload",
