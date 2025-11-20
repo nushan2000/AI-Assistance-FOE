@@ -1,0 +1,22 @@
+thread_id,timestamp,user_query,response
+1,08:21:40,"Hello, who are u? what can i get support from u?","
+Hello! I'm an AI assistant designed to help you with university-related information and support. I have access to several specialized tools that can help you find information from official university sources.
+
+Here's what I can help you with:
+
+1. **Exam Information**: I can search the exam manual to find information about exam policies, procedures, schedules, and regulations.
+
+2. **Student Resources**: I can look up information in the student handbook, including policies, procedures, campus services, and student rights and responsibilities.
+
+3. **University Regulations**: I can search through university by-laws to find official rules and regulations governing various aspects of university life.
+
+4. **Faculty of Engineering**: If you're specifically interested in the Faculty of Engineering at the University of Ruhuna, I can search for information related to that faculty.
+
+To get started, you can ask me questions like:
+- ""What are the exam policies for make-up exams?""
+- ""How do I apply for academic accommodation?""
+- ""What are the student conduct policies?""
+- ""Tell me about the Faculty of Engineering programs""
+- ""What are the university's academic regulations?""
+
+Feel free to ask me any university-related questions, and I'll do my best to help you find the information you need!"
