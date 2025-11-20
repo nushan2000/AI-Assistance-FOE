@@ -722,9 +722,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
 export default ChatInterface;
 
-
 // ////////////////////////////////////////////////////////////////////////////////////////
-
 
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import { useNavigate } from "react-router-dom";

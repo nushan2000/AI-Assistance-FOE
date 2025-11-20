@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 // axios not used here; use fetch for network
 import "./VoiceButton.css";
 
@@ -27,9 +28,24 @@ export default function VoiceChatPopup({
   const [collected, setCollected] = useState<CollectedMessage[]>([]);
   const recognitionRef = useRef<any | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  // container element for React portal so the modal mounts at document.body
+  const elRef = useRef<HTMLDivElement>(document.createElement("div"));
   const startDelayRef = useRef<number | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
   const interimRef = useRef<string>("");
+
+  useEffect(() => {
+    const el = elRef.current;
+    el.className = "voice-portal-root";
+    document.body.appendChild(el);
+    return () => {
+      try {
+        document.body.removeChild(el);
+      } catch (e) {
+        /* ignore */
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!visible) {
@@ -175,10 +191,11 @@ export default function VoiceChatPopup({
       const chatResp = await fetch(chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // backend expects a `message` field (ChatMessage model). Send message instead of text.
         body: JSON.stringify({
+          message: text,
           session_id: sessionId,
           user_id: userEmail,
-          text,
         }),
       });
       if (chatResp.ok) {
@@ -265,12 +282,11 @@ export default function VoiceChatPopup({
 
   if (!visible) return null;
 
-  return (
+  const popup = (
     <div className="voice-popup-overlay">
       <div className="voice-popup">
         <div className="voice-header">
-          <h3>Voice Chat</h3>
-          <button onClick={handleClose}>Close</button>
+          {/* <h3 className="voice-title"></h3> */}
         </div>
         <div className="voice-body">
           <div
@@ -280,20 +296,109 @@ export default function VoiceChatPopup({
               status === "speaking" ? "speaking" : ""
             }`}
           >
-            <button
-              className="voice-record-btn"
+            <div
+              className="gif-container"
               onClick={() => {
                 if (status === "recording") stopRecognition();
                 else if (status === "idle" || status === "waiting")
                   startRecognition();
               }}
+              role="button"
+              aria-pressed={status === "recording"}
+              tabIndex={0}
             >
-              {status === "recording"
-                ? "Listening..."
-                : status === "waiting"
-                ? "Recording will start..."
-                : "Start/Stop"}
-            </button>
+              <img
+                src="/voice.gif"
+                className="voice-gif"
+                alt="voice activity"
+              />
+
+              <div className="status-overlay" aria-hidden>
+                {/* status icon */}
+                {status === "recording" && (
+                  <svg
+                    className="status-icon mic"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 1v10"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M19 10a7 7 0 01-14 0"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 21v-4"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+                {status === "thinking" && (
+                  <svg
+                    className="status-icon thinking"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 2a7 7 0 00-7 7c0 3.866 3.582 7 8 7"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 22v-2"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+                {status === "speaking" && (
+                  <svg
+                    className="status-icon speaking"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3 12s3-4 9-4 9 4 9 4-3 4-9 4S3 12 3 12z"
+                      stroke="#fff"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 8v8"
+                      stroke="#fff"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="voice-status">
@@ -322,9 +427,17 @@ export default function VoiceChatPopup({
         </div>
 
         <div className="voice-footer">
-          <button onClick={handleClose}>Save & Close</button>
+          <button
+            className="end-chat-btn"
+            onClick={handleClose}
+            aria-label="End the chat"
+          >
+            End the Chat
+          </button>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(popup, elRef.current);
 }

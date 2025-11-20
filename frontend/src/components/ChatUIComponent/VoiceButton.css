@@ -1,25 +1,32 @@
 .voice-popup-overlay {
-  /* position: fixed; */
-  inset: 0;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 5000;
+  background: rgba(0, 0, 0, 0.5); /* darker backdrop covering full viewport */
+  z-index: 99999; /* ensure overlay is above other UI */
+  transition: background 160ms ease, opacity 160ms ease;
 }
 
 .voice-popup {
-  /* Centered modal — slightly taller for better readability */
-  width: 50vw;
-  height: 86vh;
-  max-width: 1200px;
-  max-height: 1000px;
-  /* ensure popup is centered in viewport, not fixed to bottom */
-  position: fixed;
+  /* Absolutely center the modal inside the fixed overlay to avoid
+     unexpected stacking/positioning when parent containers have transforms. */
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
+  width: 40vw;
+  max-width: 1200px;
+  height: auto;
+  min-height: 60vh;
+  max-height: 90vh;
+  background: #f9f9f9;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
@@ -39,6 +46,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 40px;
+}
+.voice-popup .voice-header .voice-title {
+  color: #8b4513; /* saddle brown */
+  font-weight: 600;
 }
 .voice-body {
   display: flex;
@@ -47,20 +59,59 @@
 }
 
 .voice-circle {
-  width: 180px;
-  height: 180px;
+  width: 250px;
+  height: 250px;
   margin: 0 auto;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #ffffff, #e6e6e6);
-  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.12),
-    -8px -8px 16px rgba(255, 255, 255, 0.9),
-    inset 0 -6px 12px rgba(0, 0, 0, 0.04);
+  /* remove decorative circle and shadows for a clean gif-only UI */
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
+
+.gif-container {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.voice-gif {
+  width: 420px;
+  height: 420px;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+}
+.status-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.status-icon {
+  display: block;
+  font-size: large;
+}
+/* .status-icon.mic {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+.status-icon.thinking {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+.status-icon.speaking {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+} */
 
 .voice-circle.listening {
   transform: translateY(-4px) scale(1.02);
@@ -74,14 +125,7 @@
 }
 
 .voice-record-btn {
-  border: none;
-  background: linear-gradient(180deg, #ff7676, #ff465c);
-  color: white;
-  font-weight: 600;
-  padding: 12px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  display: none;
 }
 
 .voice-status .gif-placeholder {
@@ -107,4 +151,50 @@
 }
 .collected-messages .msg.agent {
   color: #1a73e8;
+}
+
+/* Hide transcript and collected messages in the popup UI per UX request */
+.voice-popup .transcript-view,
+.voice-popup .collected-messages {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Footer placement and themed button */
+.voice-popup .voice-body {
+  padding-bottom: 84px; /* leave room for footer button */
+}
+
+.voice-popup .voice-footer {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: block;
+}
+
+.voice-popup .voice-footer .end-chat-btn {
+  background: transparent;
+  color: #514f4f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #6b2e2e;
+  box-shadow: 0 8px 20px rgba(107, 46, 46, 0.12);
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.voice-popup .voice-footer .end-chat-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(107, 46, 46, 0.18);
+}
+
+.voice-popup .voice-footer .end-chat-btn:focus {
+  outline: 3px solid rgba(107, 46, 46, 0.14);
+  outline-offset: 2px;
 }
