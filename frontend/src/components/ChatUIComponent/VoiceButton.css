@@ -1,0 +1,110 @@
+.voice-popup-overlay {
+  /* position: fixed; */
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 5000;
+}
+
+.voice-popup {
+  /* Centered modal — slightly taller for better readability */
+  width: 50vw;
+  height: 86vh;
+  max-width: 1200px;
+  max-height: 1000px;
+  /* ensure popup is centered in viewport, not fixed to bottom */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.voice-popup .voice-body {
+  /* allow scrolling inside the body area when content grows */
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.voice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.voice-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.voice-circle {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.12),
+    -8px -8px 16px rgba(255, 255, 255, 0.9),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.voice-circle.listening {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 18px 30px rgba(20, 20, 20, 0.12);
+}
+.voice-circle.thinking {
+  box-shadow: 0 22px 40px rgba(30, 30, 100, 0.12);
+}
+.voice-circle.speaking {
+  box-shadow: 0 22px 40px rgba(20, 100, 20, 0.12);
+}
+
+.voice-record-btn {
+  border: none;
+  background: linear-gradient(180deg, #ff7676, #ff465c);
+  color: white;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.voice-status .gif-placeholder {
+  width: 80px;
+  display: block;
+  margin: 10px auto;
+  text-align: center;
+  color: #666;
+}
+.transcript-view {
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 8px;
+  font-size: 14px;
+  min-height: 42px;
+}
+.collected-messages .msg {
+  margin: 6px 0;
+  font-size: 13px;
+}
+.collected-messages .msg.user {
+  color: #111;
+}
+.collected-messages .msg.agent {
+  color: #1a73e8;
+}

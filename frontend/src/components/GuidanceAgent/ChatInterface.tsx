@@ -12,7 +12,7 @@ import { useTheme } from "../../context/ThemeContext";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
-import VoiceRecorder from "./VoiceRecorder";
+import VoiceChatPopup from "../../components/ChatUIComponent/VoiceChatPopup";
 
 interface ChatInterfaceProps {
   sessionId?: string;
@@ -54,6 +54,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<any>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [voicePopupOpen, setVoicePopupOpen] = useState<boolean>(false);
   const pendingVoiceIndexRef = useRef<number | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
 
@@ -629,28 +630,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </button>
 
               <IconButton
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
-                onClick={() => {
-                  if (!recorderRef.current) return;
-                  if (recorderRef.current.isRecording())
-                    recorderRef.current.stop();
-                  else recorderRef.current.start();
-                }}
-                title={isRecording ? "Stop recording" : "Record voice"}
-                style={{ color: isRecording ? "#c62828" : undefined }}
+                aria-label="Open voice chat popup"
+                onClick={() => setVoicePopupOpen(true)}
+                title="Voice chat"
               >
                 <MicIcon />
               </IconButton>
 
-              <VoiceRecorder
-                ref={recorderRef}
-                showControls={false}
+              <VoiceChatPopup
+                visible={voicePopupOpen}
                 sessionId={userSpecificSessionId}
                 userEmail={currentUser?.email}
-                onTranscription={handleVoiceTranscription}
-                onVoiceSend={handleVoiceSend}
-                onVoiceResponse={handleVoiceResponse}
-                onRecordingChange={(r) => setIsRecording(r)}
+                onClose={(msgs) => {
+                  setVoicePopupOpen(false);
+                  if (!msgs || msgs.length === 0) return;
+                  // append messages into chat
+                  const toAppend = msgs.map((m) => ({ role: m.role === 'agent' ? ('assistant' as const) : ('user' as const), content: m.text }));
+                  setMessages((prev: any) => [...prev, ...toAppend] as any);
+                  loadChatSessions();
+                }}
               />
 
               <button

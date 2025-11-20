@@ -850,6 +850,11 @@ const BookingChatInterface: React.FC = () => {
           onKeyPress={handleKeyPress}
           formatMessage={formatMessage}
           agentName="Booking Agent"
+          onAppendMessages={(msgs) => {
+            // msgs: { role: 'user'|'assistant', content: string }
+            const converted = msgs.map((m: any) => ({ role: m.role, content: m.content }));
+            setMessages((prev) => [...prev, ...converted]);
+          }}
         />
       </div>
       <div
