@@ -169,21 +169,6 @@ async def create_chat_session(request: CreateSessionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# @app.post("/chat", response_model=ChatResponse)
-# async def chat_endpoint(chat_message: ChatMessage):
-#     session_id = chat_message.session_id
-#     user_id = chat_message.user_id
-#     user_message = chat_message.message
-#     logger.info(f"[CHAT] user={user_id} session={session_id} msg={user_message}")
-#     try:
-#         bot_response, conversation_history = await process_chat_message(session_id, user_id, user_message)
-#         return ChatResponse(response=bot_response, conversation_history=conversation_history, session_id=session_id)
-#     except Exception as e:
-#         logger.exception("Error in /chat")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-
 @app.post("/ruh/chat", response_model=ChatResponse)
 async def ruh_chat_endpoint(chat_message: ChatMessage):
     session_id = chat_message.session_id
@@ -210,54 +195,6 @@ async def ugc_chat_endpoint(chat_message: ChatMessage):
     except Exception as e:
         logger.exception("Error in /ugc/chat")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @app.post("/chat/voice", response_model=ChatResponse)
-# async def chat_voice_endpoint(
-#     session_id: str = Form("default"),
-#     user_id: str = Form("anonymous"),
-#     file: UploadFile = File(...),
-# ):
-#     temp_path = None
-#     converted_path = None
-#     try:
-#         if not aai.settings.api_key:
-#             raise HTTPException(status_code=500, detail="ASSEMBLYAI_API_KEY not set")
-
-#         ext = os.path.splitext(file.filename)[1].lower()
-#         temp_path = f"temp_{uuid4()}{ext}"
-#         with open(temp_path, "wb") as f:
-#             shutil.copyfileobj(file.file, f)
-
-#         if ext not in [".wav", ".mp3"]:
-#             converted_path = f"converted_{uuid4()}.wav"
-#             audio = AudioSegment.from_file(temp_path)
-#             audio.export(converted_path, format="wav")
-#             audio_path = converted_path
-#         else:
-#             audio_path = temp_path
-
-#         transcriber = aai.Transcriber()
-#         transcript = transcriber.transcribe(audio_path)
-#         if transcript.status != "completed":
-#             raise HTTPException(status_code=500, detail="Transcription failed")
-
-#         user_message = transcript.text
-#         logger.info(f"[VOICE] user={user_id} session={session_id} text={user_message}")
-
-#         bot_response, conversation_history = await process_chat_message(session_id, user_id, user_message)
-#         return ChatResponse(response=bot_response, conversation_history=conversation_history, session_id=session_id)
-
-#     except Exception as e:
-#         logger.exception("Error in /chat/voice")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-#     finally:
-#         for p in (temp_path, converted_path):
-#             if p and os.path.exists(p):
-#                 os.remove(p)
-
-
 
 
 @app.post("/ruh/chat/voice", response_model=ChatResponse)
