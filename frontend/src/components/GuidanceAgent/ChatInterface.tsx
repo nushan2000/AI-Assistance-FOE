@@ -645,7 +645,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   setVoicePopupOpen(false);
                   if (!msgs || msgs.length === 0) return;
                   // append messages into chat
-                  const toAppend = msgs.map((m) => ({ role: m.role === 'agent' ? ('assistant' as const) : ('user' as const), content: m.text }));
+                  const toAppend = msgs.map((m) => ({
+                    role:
+                      m.role === "agent"
+                        ? ("assistant" as const)
+                        : ("user" as const),
+                    content: m.text,
+                  }));
                   setMessages((prev: any) => [...prev, ...toAppend] as any);
                   loadChatSessions();
                 }}

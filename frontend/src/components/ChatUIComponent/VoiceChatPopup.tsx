@@ -165,7 +165,8 @@ export default function VoiceChatPopup({
     // If user's email belongs to RUH engineering domain or indicates undergraduate role,
     // route to `/ruh/chat`. Otherwise route to `/ugc/chat`.
     const email = (userEmail || "").toLowerCase();
-    const isRuhEng = email.endsWith("@engug.ruh.ac.lk") || email.includes("undergrad");
+    const isRuhEng =
+      email.endsWith("@engug.ruh.ac.lk") || email.includes("undergrad");
     const chatEndpoint = isRuhEng
       ? `${BACKEND_BASE.replace(/\/$/, "")}/ruh/chat`
       : `${BACKEND_BASE.replace(/\/$/, "")}/ugc/chat`;

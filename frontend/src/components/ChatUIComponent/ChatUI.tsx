@@ -211,7 +211,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
             </button>
-            {agentName.toLowerCase().includes('guidance') && (
+            {agentName.toLowerCase().includes("guidance") && (
               <button
                 type="button"
                 onMouseDown={(e) => {
