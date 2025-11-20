@@ -28,11 +28,16 @@ export default function VoiceChatPopup({
   const [collected, setCollected] = useState<CollectedMessage[]>([]);
   const recognitionRef = useRef<any | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const usingBackendAudioRef = useRef<boolean>(false);
   // container element for React portal so the modal mounts at document.body
   const elRef = useRef<HTMLDivElement>(document.createElement("div"));
   const startDelayRef = useRef<number | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
   const interimRef = useRef<string>("");
+  const alwaysListenRef = useRef<boolean>(true);
+  const [alwaysListen, setAlwaysListen] = useState<boolean>(true);
+  const ttsStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = elRef.current;
@@ -120,8 +125,87 @@ export default function VoiceChatPopup({
 
       if (finalTranscript) {
         // finalize
-        setTranscript((t) => (t ? t + " " + finalTranscript : finalTranscript));
-        pushFinalTranscript(finalTranscript.trim());
+        const trimmed = finalTranscript.trim();
+        setTranscript((t) => (t ? t + " " + trimmed : trimmed));
+        // Decide whether this final transcript is likely user speech (to avoid TTS echo)
+        const isLikelyUserSpeech = (() => {
+          try {
+            const tokens = trimmed.toLowerCase().match(/\b\w+\b/g) || [];
+            const stopWords = new Set([
+              "i",
+              "am",
+              "is",
+              "are",
+              "the",
+              "a",
+              "an",
+              "and",
+              "or",
+              "but",
+              "in",
+              "on",
+              "at",
+              "to",
+              "for",
+              "of",
+              "with",
+              "by",
+              "can",
+              "you",
+              "me",
+              "my",
+              "what",
+              "how",
+              "when",
+              "where",
+              "why",
+              "do",
+              "does",
+              "did",
+              "will",
+              "would",
+              "could",
+              "should",
+              "please",
+              "thanks",
+              "thank",
+              "hi",
+              "hello",
+              "hey",
+            ]);
+            const meaningful = tokens.filter(
+              (t: string) => t.length > 2 && !stopWords.has(t)
+            );
+            // require at least 2 meaningful tokens or at least 2 tokens total
+            return meaningful.length >= 2 || tokens.length >= 2;
+          } catch (e) {
+            return true;
+          }
+        })();
+
+        // If assistant is speaking and we are in always-listen mode and the
+        // transcript looks like user speech, treat it as an interrupt: stop TTS
+        // and immediately send this transcript.
+        if (
+          status === "speaking" &&
+          alwaysListenRef.current &&
+          isLikelyUserSpeech
+        ) {
+          // small guard: ignore transcripts that occur within 200ms of tts start (likely self-loop)
+          const now = Date.now();
+          if (!ttsStartTimeRef.current || now - ttsStartTimeRef.current > 200) {
+            try {
+              ttsStop();
+            } catch (e) {}
+            // push transcript (will set thinking etc.)
+            pushFinalTranscript(trimmed);
+          } else {
+            // fallthrough: treat as normal final transcript but do not interrupt
+            pushFinalTranscript(trimmed);
+          }
+        } else {
+          pushFinalTranscript(trimmed);
+        }
       }
 
       // show interim
@@ -144,6 +228,13 @@ export default function VoiceChatPopup({
     recognition.onend = () => {
       // ended (either silent stop or manual stop)
       if (status === "recording") setStatus("idle");
+      // If always-listen is enabled and popup still visible, restart recognition
+      if (alwaysListenRef.current && visible) {
+        // small delay to avoid busy restart loops
+        window.setTimeout(() => {
+          if (!recognitionRef.current) startRecognition();
+        }, 250);
+      }
     };
 
     recognitionRef.current = recognition;
@@ -152,6 +243,15 @@ export default function VoiceChatPopup({
     } catch (e) {
       console.warn("recognition start failed", e);
     }
+  }
+
+  // toggle handler for always listen
+  function toggleAlwaysListen() {
+    const next = !alwaysListenRef.current;
+    alwaysListenRef.current = next;
+    setAlwaysListen(next);
+    // if enabling, ensure recognition is running
+    if (next && visible && !recognitionRef.current) startRecognition();
   }
 
   function stopRecognition() {
@@ -233,6 +333,10 @@ export default function VoiceChatPopup({
         const audioBlob = await resp.blob();
         const url = URL.createObjectURL(audioBlob);
         const audio = new Audio(url);
+        // store ref so we can control play/pause/stop
+        audioRef.current = audio;
+        usingBackendAudioRef.current = true;
+        ttsStartTimeRef.current = Date.now();
         setStatus("speaking");
         await new Promise<void>((resolve) => {
           audio.onended = () => {
@@ -240,6 +344,12 @@ export default function VoiceChatPopup({
           };
           audio.play().catch(() => resolve());
         });
+        // cleanup object URL after playback
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {}
+        audioRef.current = null;
+        usingBackendAudioRef.current = false;
         setStatus("idle");
         return;
       }
@@ -252,10 +362,59 @@ export default function VoiceChatPopup({
     if ("speechSynthesis" in window) {
       const u = new SpeechSynthesisUtterance(text);
       utterRef.current = u;
+      usingBackendAudioRef.current = false;
       setStatus("speaking");
       u.onend = () => setStatus("idle");
       u.onerror = () => setStatus("idle");
       window.speechSynthesis.speak(u);
+    }
+  }
+
+  // TTS controls usable while speaking
+  function ttsPause() {
+    try {
+      if (usingBackendAudioRef.current && audioRef.current) {
+        audioRef.current.pause();
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.pause();
+      }
+    } catch (e) {
+      console.warn("ttsPause failed", e);
+    }
+  }
+
+  function ttsResume() {
+    try {
+      if (usingBackendAudioRef.current && audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.resume();
+      }
+    } catch (e) {
+      console.warn("ttsResume failed", e);
+    }
+  }
+
+  function ttsStop() {
+    try {
+      if (usingBackendAudioRef.current && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        // attempt to revoke src if it was an object URL
+        try {
+          const src = audioRef.current.src;
+          if (src && src.startsWith("blob:")) URL.revokeObjectURL(src);
+        } catch (e) {}
+        audioRef.current = null;
+        usingBackendAudioRef.current = false;
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        utterRef.current = null;
+      }
+    } catch (e) {
+      console.warn("ttsStop failed", e);
+    } finally {
+      setStatus("idle");
     }
   }
   function handleClose() {
@@ -287,6 +446,17 @@ export default function VoiceChatPopup({
       <div className="voice-popup">
         <div className="voice-header">
           {/* <h3 className="voice-title"></h3> */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <label style={{ fontSize: 12, color: "#444" }}>
+              <input
+                type="checkbox"
+                checked={alwaysListen}
+                onChange={() => toggleAlwaysListen()}
+                style={{ marginRight: 6 }}
+              />
+              Always listen
+            </label>
+          </div>
         </div>
         <div className="voice-body">
           <div
@@ -427,6 +597,63 @@ export default function VoiceChatPopup({
         </div>
 
         <div className="voice-footer">
+          <div className="tts-controls">
+            <button
+              className="tts-btn tts-pause"
+              onClick={() => ttsPause()}
+              aria-label="Pause speech"
+              title="Pause"
+            >
+              {/* Pause icon: two vertical bars */}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <rect x="5" y="4" width="4" height="16" rx="1" fill="#000" />
+                <rect x="15" y="4" width="4" height="16" rx="1" fill="#000" />
+              </svg>
+            </button>
+            <button
+              className="tts-btn tts-resume"
+              onClick={() => ttsResume()}
+              aria-label="Resume speech"
+              title="Resume"
+            >
+              {/* Resume / Play icon: triangle */}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <path d="M5 3v18l15-9L5 3z" fill="#000" />
+              </svg>
+            </button>
+            <button
+              className="tts-btn tts-stop"
+              onClick={() => ttsStop()}
+              aria-label="Stop speech"
+              title="Stop"
+            >
+              {/* Stop icon: square */}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <rect x="5" y="5" width="14" height="14" rx="2" fill="#000" />
+              </svg>
+            </button>
+          </div>
           <button
             className="end-chat-btn"
             onClick={handleClose}
