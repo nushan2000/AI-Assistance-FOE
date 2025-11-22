@@ -17,6 +17,8 @@ import Typography from "@mui/material/Typography";
 import axios from "axios";
 import { useEffect, useMemo,useState } from "react";
 import "./ExamTimeTable.css";
+import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Item = styled(Paper)(({ theme }) => ({
   // prefer the global CSS variable for panel surface (FullCalendarTheme.css)
@@ -65,31 +67,21 @@ const days = [
 // Timetable display table (Exam: x-axis = time slots, y-axis = days)
 // Timetable display table (Exam: x-axis = time slots, y-axis = days)
 function TimetableTable({ timetable }) {
-
+  const [loading, setLoading] = React.useState(false);
+  useEffect(() => {
+    if (!timetable || Object.keys(timetable).length === 0) {
+      setLoading(true); 
+    } else {
+      setLoading(false); 
+    }
+  }, [timetable]);
   console.log("timetable",timetable);
   
-  const timeSlots = Array.from(
-  { length: 2 },
-  (_, i) => `${8 + i}:00 - ${9 + i}:00`
-);
+ const timeSlots = ["08:00 - 11:00", "13:00 - 16:00"];
+
 
   
 
-  // -------------------------------
-// BUILD 2ND TABLE FROM FIRST TABLE
-// -------------------------------
-const moduleNames = {
-  "IS1402": "Mathematical Fundamentals for Engineers",
-  "IS1301": "Communication for Engineers",
-  "CE1202": "Introduction to Infrastructure Planning",
-  "CE1101": "Engineering Fundamentals",
-  "EE1301": "Circuit Analysis",
-  "CE3201": "Structural Analysis III",
-  "CE3202": "Engineering Surveying",
-  "IS1003": "Complex Analysis"
-};
-
-// Convert timetable → flat list
 const flatList = useMemo(() => {
   const list = [];
 
@@ -116,14 +108,7 @@ const flatList = useMemo(() => {
   return list;
 }, [timetable]);
 
-// Map slot → time label
-// const timeSlots = {
-//   0: "9.00 a.m. – 12.00 noon",
-//   1: "1.00 p.m. – 4.00 p.m.",
-//   2: "4.30 p.m. – 6.30 p.m."
-// };
 
-// Group by DATE + TIME
 const groupedData = useMemo(() => {
   const groups = {};
 
@@ -225,6 +210,11 @@ console.log("groups",groups);
             ))}
           </TableBody>
         </Table> */}
+      {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (  
        <Table size="small" sx={{ width: "100%", tableLayout: "fixed" }}>
   <TableHead>
     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -274,15 +264,15 @@ console.log("groups",groups);
     ))}
   </TableBody>
 </Table>
-
+        )}
       </TableContainer>
+  
     </div>
   );
 }
 
 export default function ExamTimeTable({ isFetching }) {
   const [tab, setTab] = React.useState(0);
-  const [selectedFile, setSelectedFile] = React.useState(null);
   const [theme, setTheme] = React.useState("light");
 
     useEffect(() => {
@@ -317,39 +307,6 @@ export default function ExamTimeTable({ isFetching }) {
     setTab(newValue);
     setSemester(semesters[newValue]); // Link tab index to actual semester
   };
-
-
-  const [firstExamFile, setFirstExamFile] = React.useState(null);
-  const handleExamFileChange = (event) => {
-    setFirstExamFile(event.target.files[0]);
-  };
-
-  
-  const handleExamUpload = async () => {
-    if (!firstExamFile) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", firstExamFile);
-
-    try {
-      const response = await axios.post(
-        process.env.REACT_APP_PLANNER_URL + "/api/uploadExam",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      alert(response.data);
-      await getCalenderData(); // Refresh timetable
-    } catch (error) {
-      const message =
-        error.response?.data || "Upload failed. Please try again.";
-      alert(message);
-      console.error("Upload failed:", error);
-    }
-  };
-  // Exam upload handled by sidebar; removed local upload handlers
 
   // Fetch timetable data from backend
   const getCalenderData = async () => {
@@ -449,10 +406,17 @@ export default function ExamTimeTable({ isFetching }) {
             </Tabs>
 
             {semesters.map((sem, idx) => (
-              <TabPanel value={tab} index={idx} key={sem}>
-                <TimetableTable timetable={calenderData[idx]} />
-              </TabPanel>
-            ))}
+  <TabPanel value={tab} index={idx} key={sem}>
+    {isFetching== false ? (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+        <CircularProgress />
+      </Box>
+    ) : (
+      <TimetableTable timetable={calenderData[idx]} />
+    )}
+  </TabPanel>
+))}
+
           </Item>
         </Grid>
       </Grid>

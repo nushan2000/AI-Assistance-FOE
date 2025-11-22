@@ -17,7 +17,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import "./ExamTimeTable.css";
 import { useTheme as useAppTheme } from "../../context/ThemeContext";
-
+import CircularProgress from '@mui/material/CircularProgress';
 const Item = styled(Paper)(({ theme }) => ({
   // prefer the global CSS variable for panel surface (FullCalendarTheme.css)
   // fall back to MUI palette when variable is not present
@@ -94,15 +94,15 @@ const [selectedFile, setSelectedFile] = React.useState(null);
     >
       <Table size="small" sx={{ width: "100%", tableLayout: "fixed" }}>
         <TableHead>
-          <TableRow>
-            <TableCell sx={{ color: mutedText }}>Time</TableCell>
+          <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableCell sx={{ fontWeight: "bold", width: "120px" }}>Time</TableCell>
             {days.map((day) => (
               <TableCell
                 key={day}
                 sx={{
                   backgroundColor: headBg,
                   color: primaryText,
-                  fontWeight: 700,
+                  fontWeight: "bold",
                   textAlign: "center",
                 }}
               >
@@ -126,31 +126,32 @@ const [selectedFile, setSelectedFile] = React.useState(null);
                 const slotModules = timetable?.[day]?.[rowIdx] || [];
                 return (
                   <TableCell
-                    key={day + "-" + rowIdx}
-                    sx={{
-                      backgroundColor: slotModules.length
-                        ? theme.palette.primary.main
-                        : "transparent",
-                      color: slotModules.length ? eventText : primaryText,
-                      textAlign: "center",
-                      fontWeight: slotModules.length ? 700 : "normal",
-                      verticalAlign: "middle",
-                      whiteSpace: "pre-line",
-                      borderBottom: `1px solid ${dividerColor}`,
-                    }}
-                  >
-                    {slotModules.map((mod, i) => (
-                      <div key={i}>
-                        {mod.code} ({mod.hall})
-                      </div>
-                    ))}
-                  </TableCell>
+  key={day + "-" + rowIdx}
+  sx={{
+    backgroundColor: slotModules.length
+      ? "#808080ff" // green instead of blue
+      : panelBg,
+    color: slotModules.length ? eventText : primaryText,
+    textAlign: "center",
+    fontWeight: slotModules.length ? 700 : "normal",
+    verticalAlign: "middle",
+    whiteSpace: "pre-line",
+    borderBottom: `1px solid ${dividerColor}`,
+  }}
+>
+  {slotModules.map((mod, i) => (
+    <div key={i}>
+      {mod.code} ({mod.hall})
+    </div>
+  ))}
+</TableCell>
                 );
               })}
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      
     </TableContainer>
   );
 }
@@ -351,7 +352,14 @@ const [selectedFile, setSelectedFile] = React.useState(null);
 
             {semesters.map((sem, idx) => (
               <TabPanel value={tab} index={idx} key={sem}>
-                <TimetableTable timetable={calenderData[idx]} />
+                {isFetching== false ? (
+                      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : (
+                      <TimetableTable timetable={calenderData[idx]} />
+                    )}
+                
               </TabPanel>
             ))}
           </Item>

@@ -6,9 +6,12 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import PlannerScreen from "./plannerScreen";
 import ExamTimeTable from "./ExamTimeTable2";
 import axios from "axios";
+import { useNotification } from "../../context/NotificationContext";
+
 // import Home from "./Home";
 
 const PlannerChatInterface: React.FC = () => {
+  const { notify } = useNotification();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
 
@@ -23,7 +26,7 @@ const PlannerChatInterface: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [lastDownloadUrl, setLastDownloadUrl] = useState<string | null>(null);
   const [lastDownloadName, setLastDownloadName] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -84,6 +87,7 @@ const handleFileChangee = (even: any) => {
     setLastDownloadName(`${mode}-timetable-${new Date().toISOString()}.csv`);
   };
 const handleUpload = async () => {
+  setIsFetching(false);
     if (!uploadedFile) {
       alert("Please select a file first.");
       return;
@@ -99,7 +103,7 @@ const handleUpload = async () => {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      alert(response.data);
+      // alert(response.data);
       await setIsFetching(true);
       }else if (selectedView === "exam") {
         const response = await axios.post(
@@ -107,10 +111,10 @@ const handleUpload = async () => {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      alert(response.data);
+      // alert(response.data);
       await setIsFetching(true);
       }
-
+      notify("success", "Upload successful", "Your file has been uploaded.");
       
       // await getCalenderData(); // Refresh timetable
     } catch (error: any) {

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-
+import "./ChatUI.css";
 export interface Message {
   role: "user" | "assistant";
   content: string | JSX.Element; 
