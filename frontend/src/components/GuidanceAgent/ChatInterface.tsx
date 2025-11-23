@@ -13,6 +13,7 @@ import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
 import VoiceRecorder from "./VoiceRecorder";
+import VoiceChatPopup from "./VoiceChatPopup";
 
 interface ChatInterfaceProps {
   sessionId?: string;
@@ -54,6 +55,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<any>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [voicePopupVisible, setVoicePopupVisible] = useState(false);
   const pendingVoiceIndexRef = useRef<number | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
 
@@ -631,10 +633,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <IconButton
                 aria-label={isRecording ? "Stop recording" : "Start recording"}
                 onClick={() => {
-                  if (!recorderRef.current) return;
-                  if (recorderRef.current.isRecording())
-                    recorderRef.current.stop();
-                  else recorderRef.current.start();
+                  // Open the voice assistant popup instead of inline recorder
+                  setVoicePopupVisible(true);
                 }}
                 title={isRecording ? "Stop recording" : "Record voice"}
                 style={{ color: isRecording ? "#c62828" : undefined }}
@@ -663,6 +663,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </div>
         </div>
+        <VoiceChatPopup
+          visible={voicePopupVisible}
+          sessionId={userSpecificSessionId}
+          userEmail={currentUser?.email}
+          onClose={(messages) => {
+            // close popup and refresh chat history; collected messages are available
+            setVoicePopupVisible(false);
+            // reload messages from backend to reflect any new messages
+            if (currentUser && userSpecificSessionId) loadChatHistory();
+          }}
+        />
       </div>
 
       <div className="sidebar">

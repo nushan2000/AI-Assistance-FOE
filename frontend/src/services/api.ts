@@ -156,7 +156,11 @@ class ApiService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+    // Prefer `REACT_APP_API_BASE` (used elsewhere) but fall back to older name or localhost
+    this.baseUrl =
+      (process.env.REACT_APP_API_BASE as string) ||
+      (process.env.REACT_APP_API_URL as string) ||
+      "http://localhost:9000";
   }
 
   // Send feedback for a message
