@@ -110,7 +110,7 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/chat`, {
+      const response = await fetch(`${this.baseUrl}/ruh/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,6 +129,35 @@ class ApiService {
       throw error;
     }
   }
+
+  // // ================= NEW METHOD FOR VOICE =================
+  // // Option B: Voice to text using backend endpoint
+  // async voiceToText(formData: FormData): Promise<{ transcript: string }> {
+  //   try {
+  //     const response = await fetch(`${this.baseUrl}/chat/voice`, {
+  //       method: "POST",
+  //       body: formData, // send as FormData
+  //       // Authorization header included if your backend requires auth
+  //       headers: {
+  //         Authorization: `Bearer ${getAccessToken()}`,
+  //       },
+  //     });
+
+  //     updateAccessTokenFromResponse(response);
+  //     handleAuthError(response);
+
+  //     if (!response.ok) {
+  //       throw new Error(`Voice to text request failed with status ${response.status}`);
+  //     }
+
+  //     // Backend should return { transcript: "recognized text" }
+  //     return await response.json();
+  //   } catch (error) {
+  //     console.error("voiceToText error:", error);
+  //     throw error;
+  //   }
+  // }
+
   // Create a new chat session for the user
   async createNewChatSession(
     userId?: string
