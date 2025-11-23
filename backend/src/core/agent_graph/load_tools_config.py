@@ -116,4 +116,22 @@ class LoadToolsConfig:
         self.establishment_code_rag_chunk_overlap = app_config["establishment_code_rag"]["chunk_overlap"]
         self.establishment_code_rag_collection_name = app_config["establishment_code_rag"]["collection_name"]
 
+
+        # UGC Circulars RAG configs
+        self.ugc_circulars_rag_llm = app_config["ugc_circulars_rag"]["llm"]
+        self.ugc_circulars_rag_llm_temperature = float(
+            app_config["ugc_circulars_rag"]["llm_temperature"]
+        )
+        self.ugc_circulars_rag_embedding_model = app_config["ugc_circulars_rag"]["embedding_model"]
+        self.ugc_circulars_rag_vectordb_directory = str(here(
+            app_config["ugc_circulars_rag"]["vectordb"]
+        ))
+        self.ugc_circulars_rag_unstructured_docs_directory = str(here(
+            app_config["ugc_circulars_rag"]["unstructured_docs"]
+        ))
+        self.ugc_circulars_rag_k = app_config["ugc_circulars_rag"]["k"]
+        self.ugc_circulars_rag_chunk_size = app_config["ugc_circulars_rag"]["chunk_size"]
+        self.ugc_circulars_rag_chunk_overlap = app_config["ugc_circulars_rag"]["chunk_overlap"]
+        self.ugc_circulars_rag_collection_name = app_config["ugc_circulars_rag"]["collection_name"]
+
 #===============================================================

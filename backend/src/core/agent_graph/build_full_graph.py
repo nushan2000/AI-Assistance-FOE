@@ -15,6 +15,8 @@ from .tool_exam_manual_rag import lookup_exam_manual
 from .tool_by_law_rag import lookup_by_law
 from .tool_tavily_search import load_tavily_search_tool
 from .tool_establishment_code_rag import lookup_establishment_code   
+from .tool_lookup_ugc_circulars import lookup_ugc_circulars
+
 
 TOOLS_CFG = LoadToolsConfig()
 
@@ -50,8 +52,10 @@ def build_graph(agent_type="ruhuna"):
         ]
     elif agent_type == "ugc":
         tools = [
-            lookup_procurement_guidelines,
-            lookup_establishment_code
+            # lookup_procurement_guidelines,
+            # lookup_establishment_code,
+            lookup_ugc_circulars,
+            # search_tool
         ]
     else:
         raise ValueError(f"Unknown agent_type: {agent_type}")
