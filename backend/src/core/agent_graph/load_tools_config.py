@@ -99,7 +99,7 @@ class LoadToolsConfig:
         self.procurement_guidelines_rag_chunk_overlap = app_config["procurement_guidelines_rag"]["chunk_overlap"]
         self.procurement_guidelines_rag_collection_name = app_config["procurement_guidelines_rag"]["collection_name"]
 
-                # Establishment Code RAG configs
+        # Establishment Code RAG configs
         self.establishment_code_rag_llm = app_config["establishment_code_rag"]["llm"]
         self.establishment_code_rag_llm_temperature = float(
             app_config["establishment_code_rag"]["llm_temperature"]

@@ -16,8 +16,8 @@ if __name__ == "__main__":
     print(f"Found PDFs: {all_pdf_files}")
 
     test_queries = [
-        "What is stated in this circular?",
-        "What new rules were introduced?",
+        "What statement is made about the signed paper copy of circulars on the UGC “Commission Circulars” page?",
+        "How are the circulars on the UGC page organized in terms of years for easy access?",
     ]
 
     # One vector DB for all PDFs

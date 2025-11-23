@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 from .tool_tavily_search import load_tavily_search_tool
 from .load_tools_config import LoadToolsConfig
 from .agent_backend import State, BasicToolNode, route_tools, plot_agent_schema
-from .procurement_guidelines_rag_tool import lookup_procurement_guidelines
+from .tool_procurement_guidelines_rag_tool import lookup_procurement_guidelines
 # from .tool_by_law_rag import lookup_by_law
 from .tool_tavily_search import load_tavily_search_tool
 from .tool_student_handbook_rag import lookup_student_handbook
@@ -52,8 +52,8 @@ def build_graph(agent_type="ruhuna"):
         ]
     elif agent_type == "ugc":
         tools = [
-            # lookup_procurement_guidelines,
-            # lookup_establishment_code,
+            lookup_procurement_guidelines,
+            lookup_establishment_code,
             lookup_ugc_circulars,
             # search_tool
         ]
