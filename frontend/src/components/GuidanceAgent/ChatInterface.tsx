@@ -12,8 +12,7 @@ import { useTheme } from "../../context/ThemeContext";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
-import VoiceRecorder from "./VoiceRecorder";
-import VoiceChatPopup from "./VoiceChatPopup";
+import VoiceChatPopupImpl from "./GuidanceVoicePopup";
 
 interface ChatInterfaceProps {
   sessionId?: string;
@@ -53,11 +52,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [userSpecificSessionId, setUserSpecificSessionId] =
     useState<string>(sessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recorderRef = useRef<any>(null);
-  const [isRecording, setIsRecording] = useState(false);
   const [voicePopupVisible, setVoicePopupVisible] = useState(false);
   const pendingVoiceIndexRef = useRef<number | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   // Get current user email from /auth/me endpoint
   useEffect(() => {
@@ -190,6 +188,159 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     );
   };
 
+  // Play assistant audio (try server-provided audio_url / audio_base64, fallback to browser TTS)
+  const playAudioFromUrl = (url: string) =>
+    new Promise<void>(async (resolve, reject) => {
+      try {
+        console.debug("playAudioFromUrl: trying to fetch audio URL", url);
+        // First try fetching the URL as a blob (safer for CORS and to detect errors)
+        try {
+          const resp = await fetch(url, { method: "GET" });
+          if (resp.ok) {
+            const blob = await resp.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const audio = new Audio(blobUrl);
+            audio.onended = () => {
+              URL.revokeObjectURL(blobUrl);
+              resolve();
+            };
+            audio.onerror = (e) => {
+              URL.revokeObjectURL(blobUrl);
+              reject(e);
+            };
+            const p = audio.play();
+            if (p && typeof p.then === "function") p.catch(reject);
+            return;
+          } else {
+            console.debug(
+              "playAudioFromUrl: fetch returned non-ok",
+              resp.status
+            );
+          }
+        } catch (fetchErr) {
+          console.debug(
+            "playAudioFromUrl: fetch failed, will try direct playback",
+            fetchErr
+          );
+        }
+
+        // Fallback: try direct playback from URL (may fail due to CORS/autoplay)
+        const audio = new Audio(url);
+        audio.crossOrigin = "anonymous";
+        audio.onended = () => resolve();
+        audio.onerror = (e) => reject(e);
+        const p = audio.play();
+        if (p && typeof p.then === "function") p.catch(reject);
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+  const playAudioFromBase64 = (base64: string, mime = "audio/mpeg") =>
+    new Promise<void>((resolve, reject) => {
+      try {
+        console.debug("playAudioFromBase64: playing base64 audio, mime=", mime);
+        const bstr = atob(base64);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        const blob = new Blob([u8arr], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          resolve();
+        };
+        audio.onerror = (e) => reject(e);
+        const p = audio.play();
+        if (p && typeof p.then === "function") p.catch(reject);
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+  const speakText = (text: string) =>
+    new Promise<void>((resolve) => {
+      try {
+        if (!window.speechSynthesis) return resolve();
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.onend = () => resolve();
+        ut.onerror = () => resolve();
+        window.speechSynthesis.speak(ut);
+      } catch (e) {
+        resolve();
+      }
+    });
+
+  const playAssistantMedia = async (respOrText: any) => {
+    try {
+      setIsPlayingAudio(true);
+      // If caller passed a simple string, speak it
+      if (typeof respOrText === "string") {
+        console.debug("playAssistantMedia: speaking string");
+        await speakText(respOrText);
+        return;
+      }
+
+      // Try structured response fields
+      if (respOrText?.audio_url) {
+        console.debug(
+          "playAssistantMedia: found audio_url",
+          respOrText.audio_url
+        );
+        try {
+          await playAudioFromUrl(respOrText.audio_url);
+          return;
+        } catch (err) {
+          console.warn(
+            "playAssistantMedia: audio_url playback failed, falling back",
+            err
+          );
+        }
+      }
+      if (respOrText?.audio_base64) {
+        console.debug(
+          "playAssistantMedia: found audio_base64 (len)",
+          (respOrText.audio_base64 || "").length
+        );
+        try {
+          // try to detect mime if provided, else default
+          const mime =
+            respOrText.audio_mime || respOrText.audioType || "audio/mpeg";
+          await playAudioFromBase64(respOrText.audio_base64, mime);
+          return;
+        } catch (err) {
+          console.warn(
+            "playAssistantMedia: audio_base64 playback failed, falling back",
+            err
+          );
+        }
+      }
+
+      const t =
+        respOrText?.response ||
+        respOrText?.assistant_text ||
+        respOrText?.text ||
+        "";
+      if (t) {
+        console.debug(
+          "playAssistantMedia: falling back to TTS",
+          t.slice(0, 80)
+        );
+        await speakText(t);
+      } else {
+        console.debug(
+          "playAssistantMedia: no audio or text available to speak"
+        );
+      }
+    } catch (e) {
+      // swallow playback errors — keep app responsive
+      // console.warn('assistant playback failed', e);
+    } finally {
+      setIsPlayingAudio(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading || !currentUser) return;
     await sendText(inputValue.trim());
@@ -252,6 +403,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         content: response.response,
       };
       setMessages((prev) => [...prev, assistantMessage]);
+      // Speak the assistant response (try server audio then fallback to TTS)
+      (async () => {
+        try {
+          await playAssistantMedia(response);
+        } catch (e) {
+          console.warn("assistant playback error", e);
+        }
+      })();
       loadChatSessions();
       setGuidanceFilters(["all"]);
     } catch (error) {
@@ -387,6 +546,40 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         next.push({ role: "assistant", content: assistantText });
         return next;
       });
+      // Play assistant audio / TTS and show talking.gif while speaking
+      (async () => {
+        try {
+          setIsPlayingAudio(true);
+          // try audio_url
+          if (resp?.audio_url) {
+            const audio = new Audio(resp.audio_url);
+            await audio.play();
+          } else if (resp?.audio_base64) {
+            const bstr = atob(resp.audio_base64);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            const blob = new Blob([u8arr], { type: "audio/mpeg" });
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            await audio.play();
+            URL.revokeObjectURL(url);
+          } else if (resp?.response || resp?.assistant_text || resp?.text) {
+            const t = resp?.response || resp?.assistant_text || resp?.text;
+            if (window.speechSynthesis) {
+              await new Promise<void>((resolve) => {
+                const ut = new SpeechSynthesisUtterance(t);
+                ut.onend = () => resolve();
+                window.speechSynthesis.speak(ut);
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("play assistant audio failed", e);
+        } finally {
+          setIsPlayingAudio(false);
+        }
+      })();
       // clear pending marker and loading
       pendingVoiceIndexRef.current = null;
       setVoiceUploading(false);
@@ -425,6 +618,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             content: resp.response,
           };
           setMessages((prev) => [...prev, assistantMessage]);
+          // Speak the assistant response from routed voice
+          try {
+            await playAssistantMedia(resp);
+          } catch (e) {
+            console.warn("assistant playback error (routed)", e);
+          }
           loadChatSessions();
         } catch (e) {
           setError("Failed to route voice message to agent");
@@ -630,28 +829,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </svg>
               </button>
 
-              <IconButton
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
-                onClick={() => {
-                  // Open the voice assistant popup instead of inline recorder
-                  setVoicePopupVisible(true);
-                }}
-                title={isRecording ? "Stop recording" : "Record voice"}
-                style={{ color: isRecording ? "#c62828" : undefined }}
-              >
-                <MicIcon />
-              </IconButton>
-
-              <VoiceRecorder
-                ref={recorderRef}
-                showControls={false}
-                sessionId={userSpecificSessionId}
-                userEmail={currentUser?.email}
-                onTranscription={handleVoiceTranscription}
-                onVoiceSend={handleVoiceSend}
-                onVoiceResponse={handleVoiceResponse}
-                onRecordingChange={(r) => setIsRecording(r)}
-              />
+              {/* Show processing video while uploading, talking.gif while assistant speaks, otherwise mic button */}
+              {voiceUploading ? (
+                <video
+                  src="/processing.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  style={{ width: 40, height: 40, borderRadius: 6 }}
+                />
+              ) : isPlayingAudio ? (
+                <img
+                  src="/talking.gif"
+                  alt="Assistant speaking"
+                  style={{ width: 40, height: 40 }}
+                />
+              ) : (
+                <IconButton
+                  aria-label={"Open voice popup"}
+                  onClick={() => setVoicePopupVisible(true)}
+                  title={"Open voice assistant"}
+                >
+                  <MicIcon />
+                </IconButton>
+              )}
 
               <button
                 onClick={handleNewChat}
@@ -663,14 +864,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </div>
         </div>
-        <VoiceChatPopup
-          visible={voicePopupVisible}
+        <VoiceChatPopupImpl
+          open={voicePopupVisible}
           sessionId={userSpecificSessionId}
           userEmail={currentUser?.email}
-          onClose={(messages) => {
-            // close popup and refresh chat history; collected messages are available
+          onClose={() => {
+            // close popup and refresh chat history
             setVoicePopupVisible(false);
-            // reload messages from backend to reflect any new messages
             if (currentUser && userSpecificSessionId) loadChatHistory();
           }}
         />
@@ -729,9 +929,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
 export default ChatInterface;
 
-
 // ////////////////////////////////////////////////////////////////////////////////////////
-
 
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import { useNavigate } from "react-router-dom";

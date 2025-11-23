@@ -4,6 +4,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { uploadVoice } from "../../services/voice";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
@@ -116,71 +117,21 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
       setUploading(true);
       setError(null);
       try {
-        const form = new FormData();
-        const ext = blob.type.includes("ogg")
-          ? "ogg"
-          : blob.type.includes("mpeg")
-          ? "mp3"
-          : blob.type.includes("wav")
-          ? "wav"
-          : "webm";
-        const filename = `voice.${ext}`;
-        form.append("file", blob, filename);
-        form.append("session_id", sessionId);
-        form.append("user_id", userEmail || "");
-
-        // Use explicit backend URL to ensure requests reach the FastAPI server
-        // Allow override via `REACT_APP_API_BASE` env variable (e.g. http://localhost:8000)
-        const BACKEND_BASE =
-          (process.env.REACT_APP_API_BASE as string) || "http://localhost:8000";
-        const uploadUrl = `${BACKEND_BASE.replace(/\/$/, "")}/chat/voice`;
-
-        // notify parent that upload is starting so it can show a pending user bubble
         onVoiceSend?.();
-
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          body: form,
+        const resp = await uploadVoice({
+          blob,
+          sessionId,
+          userId: userEmail || "",
+          onProgress: (pct) => {
+            // optional: could set progress state here
+            // console.debug('upload progress', pct);
+          },
         });
 
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`Upload failed: ${response.status} ${text}`);
-        }
-
-        const postResp = await response.json();
-
-        // The backend now persists the transcript and returns an acknowledgement.
-        // Fetch the saved transcript via the dedicated GET endpoint so the frontend
-        // can display the user query first and then call /chat for routing.
-        const transcriptUrl = `${BACKEND_BASE.replace(
-          /\/$/,
-          ""
-        )}/chat/voice/${encodeURIComponent(
-          sessionId
-        )}/transcript?user_id=${encodeURIComponent(userEmail || "")}`;
-
-        let transcript = "";
-        try {
-          const tResp = await fetch(transcriptUrl, { method: "GET" });
-          if (tResp.ok) {
-            const tjson = await tResp.json();
-            transcript = tjson?.transcript || "";
-          } else {
-            // transcript may not be immediately available; fall back to empty
-            console.warn(
-              "Failed to fetch transcript after upload",
-              await tResp.text()
-            );
-          }
-        } catch (e) {
-          console.warn("Error fetching transcript", e);
-        }
-
-        const normalized = { ...(postResp || {}), transcript };
+        const normalized = resp || {};
         onVoiceResponse?.(normalized);
-        if (!normalized.response && transcript) {
-          onTranscription?.(transcript);
+        if (normalized.transcript) {
+          onTranscription?.(normalized.transcript);
         }
       } catch (err) {
         console.error("Voice upload failed", err);
@@ -190,7 +141,6 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
         );
       } finally {
         setUploading(false);
-        // clear collected chunks to avoid keeping blob data in memory
         chunksRef.current = [];
         setRecordSeconds(0);
       }
