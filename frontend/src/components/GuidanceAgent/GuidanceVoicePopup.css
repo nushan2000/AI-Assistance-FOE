@@ -177,7 +177,7 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 40px; /* placed 50px above bottom of gif */
+    bottom: 30px; /* placed 50px above bottom of gif */
     display: flex;
     gap: 12px;
     align-items: center;

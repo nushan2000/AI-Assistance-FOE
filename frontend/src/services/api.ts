@@ -225,28 +225,32 @@ class ApiService {
   }
 
   // Clear chat history
-  // async clearChat(sessionId: string = 'default', userId?: string): Promise<void> {
-  //   try {
-  //     const url = new URL(`${this.baseUrl}/chat/${sessionId}`);
-  //     if (userId) {
-  //       url.searchParams.append('user_id', userId);
-  //     }
+  async clearChat(
+    sessionId: string = "default",
+    userId?: string
+  ): Promise<void> {
+    try {
+      const url = new URL(`${this.baseUrl}/chat/${sessionId}`);
+      if (userId) {
+        url.searchParams.append("user_id", userId);
+      }
 
-  //     const response = await fetch(url.toString(), {
-  //       method: 'DELETE',
-  //       headers: {
-  //         Authorization: `Bearer ${getAccessToken()}`,
-  //       },
-  //     });
-  //     updateAccessTokenFromResponse(response);
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error clearing chat:', error);
-  //     throw error;
-  //   }
-  // }
+      const response = await fetch(url.toString(), {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
+      updateAccessTokenFromResponse(response);
+      handleAuthError(response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      throw error;
+    }
+  }
 
   // Get chat history
   async getChatHistory(
