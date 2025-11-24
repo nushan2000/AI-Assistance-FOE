@@ -10,13 +10,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import SyncIcon from "@mui/icons-material/Sync";
 import { useNotification } from "../../context/NotificationContext";
-
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  sessionId: string;
-  userEmail?: string | null;
-};
+import { GuidanceVoiceProps } from "../../utils/types";
 
 // Popup is voice-only; no message type required here
 
@@ -25,7 +19,7 @@ export default function VoiceChatPopupImpl({
   onClose,
   sessionId,
   userEmail,
-}: Props) {
+}: GuidanceVoiceProps) {
   const recorderRef = useRef<any>(null);
   const [state, setState] = useState<
     "idle" | "recording" | "thinking" | "speaking"

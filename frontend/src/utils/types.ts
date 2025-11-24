@@ -146,3 +146,22 @@ export interface ChatUIProps {
     msgs: { role: "user" | "assistant"; content: string }[]
   ) => void; // optional handler to append messages from popup
 }
+
+export type GuidanceVoiceProps = {
+  open: boolean;
+  onClose: () => void;
+  sessionId: string;
+  userEmail?: string | null;
+};
+
+export interface VoiceRecorderProps {
+  sessionId: string;
+  userEmail?: string | null;
+  onTranscription?: (text: string) => void;
+  onVoiceSend?: () => void; // called when upload starts
+  onVoiceResponse?: (resp: any) => void; // full backend response for voice
+  showControls?: boolean;
+  showTimer?: boolean;
+  showUploading?: boolean;
+  onRecordingChange?: (isRecording: boolean) => void;
+}
