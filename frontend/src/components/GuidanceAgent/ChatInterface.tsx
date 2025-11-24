@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   apiService,
@@ -915,90 +914,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     {session.topic.split(" ").slice(0, 4).join(" ")}
                     {session.topic.split(" ").length > 4 ? "..." : ""}
                   </div>
-                  <button
-                    className="delete-btn"
-                    title="Delete this chat"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // open in-app confirmation modal
-                      setConfirmTarget(session);
-                      setConfirmOpen(true);
-                    }}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6" />
-                      <path d="M14 11v6" />
-                      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </button>
+                  {/* <div className="chat-timestamp">
+                    {session.message_count} messages • {formatTimeAgo(session.updated_at)}
+                  </div> */}
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
-      {/* Confirmation modal for delete action rendered via portal to avoid stacking issues */}
-      {confirmOpen &&
-        confirmTarget &&
-        createPortal(
-          <div className="confirm-overlay" role="dialog" aria-modal="true">
-            <div className="confirm-modal" role="document">
-              <div className="confirm-title">Delete Chat</div>
-              <div className="confirm-body">
-                Are you sure you want to delete this chat session? This action
-                cannot be undone.
-              </div>
-              <div className="confirm-actions">
-                <button
-                  type="button"
-                  className="confirm-btn"
-                  onClick={() => {
-                    setConfirmOpen(false);
-                    setConfirmTarget(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="confirm-btn confirm-delete"
-                  onClick={async () => {
-                    if (!currentUser || !confirmTarget) return;
-                    try {
-                      await apiService.clearChat(
-                        confirmTarget.session_id,
-                        currentUser.email
-                      );
-                      await loadChatSessions();
-                      if (confirmTarget.session_id === userSpecificSessionId) {
-                        setUserSpecificSessionId("default");
-                        setMessages([]);
-                      }
-                    } catch (err) {
-                      console.error("Failed to delete session", err);
-                      setSessionsError("Failed to delete chat session");
-                    } finally {
-                      setConfirmOpen(false);
-                      setConfirmTarget(null);
-                    }
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
     </div>
   );
 };
