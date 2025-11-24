@@ -115,3 +115,11 @@ export interface CalendarProps {
   refreshKey?: any;
   onCellClick?: (cell: any) => void;
 }
+
+export type SwapRequest = {
+  id: number;
+  from: string;
+  to: string;
+  message: string;
+  isSender: boolean;
+};
