@@ -5,7 +5,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import { useNotification } from "../../context/NotificationContext";
-import { uploadVoice } from "../../services/voice";
+import { uploadVoice } from "../../services/voiceAPI";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";

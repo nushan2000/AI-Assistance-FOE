@@ -18,8 +18,8 @@ import {
   TextField,
 } from "@mui/material";
 import { useNotification } from "../../context/NotificationContext";
-import { fetchUserEmailFromProfile } from "../../services/api";
-import { fetchUserProfile } from "../../services/userAPI";
+import { fetchUserEmailFromProfile } from "../../services/chatAPI";
+// import { fetchUserProfile } from "../../services/userAPI";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { SelectChangeEvent } from "@mui/material/Select";

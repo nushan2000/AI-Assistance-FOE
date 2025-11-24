@@ -42,3 +42,7 @@ export type UploadVoiceOptions = {
   backendBase?: string;
   onProgress?: (percent: number) => void;
 };
+
+export interface ChatInterfaceProps {
+  sessionId?: string;
+}

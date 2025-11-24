@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Typography, Box } from "@mui/material";
 import { useTheme } from "../../context/ThemeContext";
-import { fetchUserProfile } from "../../services/userAPI";
+import { fetchUserProfile } from "../../services/authAPI";
 
 function chooseGreeting(date = new Date()) {
   const h = date.getHours();

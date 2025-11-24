@@ -93,3 +93,19 @@ export async function verifyOtp(
   // console.log('role :', data.role, '\n name :', data.name, '\n department :', data.department, '\n id :', data.id, '\n');
   return data;
 }
+
+export async function fetchUserProfile() {
+  const token = getAccessToken();
+  if (!token) throw new Error("No auth token");
+  const response = await fetch(`${Auth_Base_URL}/auth/me`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch user profile");
+  }
+  return response.json();
+}

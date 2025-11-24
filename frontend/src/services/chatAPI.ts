@@ -222,12 +222,7 @@ class ApiService {
   ): Promise<{ conversation_history: ChatMessage[]; session_id: string }> {
     try {
       const resolvedUser = userId || (await fetchUserEmailFromProfile());
-      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
-        ? "ruh"
-        : "ugc";
-      const url = new URL(
-        `${Guidance_Base_URL}/${prefix}/chat/${sessionId}/history`
-      );
+      const url = new URL(`${Guidance_Base_URL}/chat/${sessionId}/history`);
       if (resolvedUser) {
         url.searchParams.append("user_id", resolvedUser);
       }
@@ -276,10 +271,7 @@ class ApiService {
   async getChatSessions(userId?: string): Promise<ChatSessionsResponse> {
     try {
       const resolvedUser = userId || (await fetchUserEmailFromProfile());
-      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
-        ? "ruh"
-        : "ugc";
-      const url = new URL(`${Guidance_Base_URL}/${prefix}/chat/sessions`);
+      const url = new URL(`${Guidance_Base_URL}/chat/sessions`);
       if (resolvedUser) {
         url.searchParams.append("user_id", resolvedUser);
       }
