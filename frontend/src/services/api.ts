@@ -110,7 +110,7 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/chat`, {
+      const response = await fetch(`${this.baseUrl}/ruh/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,6 +129,35 @@ class ApiService {
       throw error;
     }
   }
+
+  // // ================= NEW METHOD FOR VOICE =================
+  // // Option B: Voice to text using backend endpoint
+  // async voiceToText(formData: FormData): Promise<{ transcript: string }> {
+  //   try {
+  //     const response = await fetch(`${this.baseUrl}/chat/voice`, {
+  //       method: "POST",
+  //       body: formData, // send as FormData
+  //       // Authorization header included if your backend requires auth
+  //       headers: {
+  //         Authorization: `Bearer ${getAccessToken()}`,
+  //       },
+  //     });
+
+  //     updateAccessTokenFromResponse(response);
+  //     handleAuthError(response);
+
+  //     if (!response.ok) {
+  //       throw new Error(`Voice to text request failed with status ${response.status}`);
+  //     }
+
+  //     // Backend should return { transcript: "recognized text" }
+  //     return await response.json();
+  //   } catch (error) {
+  //     console.error("voiceToText error:", error);
+  //     throw error;
+  //   }
+  // }
+
   // Create a new chat session for the user
   async createNewChatSession(
     userId?: string
@@ -156,7 +185,11 @@ class ApiService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+    // Prefer `REACT_APP_API_BASE` (used elsewhere) but fall back to older name or localhost
+    this.baseUrl =
+      (process.env.REACT_APP_API_BASE as string) ||
+      (process.env.REACT_APP_API_URL as string) ||
+      "http://localhost:9000";
   }
 
   // Send feedback for a message
@@ -288,6 +321,35 @@ class ApiService {
       return await response.json();
     } catch (error) {
       console.error("Error getting chat sessions:", error);
+      throw error;
+    }
+  }
+
+  // Route the latest persisted user message for a session through the agent
+  // (Used for voice uploads that already saved the transcript)
+  async routeLatest(
+    sessionId: string = "default",
+    userId?: string
+  ): Promise<ChatResponse> {
+    try {
+      const url = new URL(`${this.baseUrl}/chat/route`);
+      if (sessionId) url.searchParams.append("session_id", sessionId);
+      if (userId) url.searchParams.append("user_id", userId);
+
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      });
+      updateAccessTokenFromResponse(response);
+      handleAuthError(response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error routing latest message:", error);
       throw error;
     }
   }
