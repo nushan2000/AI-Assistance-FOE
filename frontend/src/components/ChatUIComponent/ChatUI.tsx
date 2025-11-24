@@ -1,11 +1,12 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import VoiceChatPopup from "./VoiceChatPopup";
 
 export interface Message {
   role: "user" | "assistant";
-  content: string | JSX.Element; 
-  recommendations?: any[]; 
-  showRecommendations?: boolean; 
+  content: string | JSX.Element;
+  recommendations?: any[];
+  showRecommendations?: boolean;
 }
 
 interface ChatUIProps {
@@ -19,6 +20,9 @@ interface ChatUIProps {
   onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   formatMessage?: (text: string) => string;
   agentName?: string; // Optional prop for agent name
+  onAppendMessages?: (
+    msgs: { role: "user" | "assistant"; content: string }[]
+  ) => void; // optional handler to append messages from popup
 }
 
 const ChatUI: React.FC<ChatUIProps> = ({
@@ -31,7 +35,8 @@ const ChatUI: React.FC<ChatUIProps> = ({
   onClear,
   onKeyPress,
   formatMessage = (text) => text,
-  agentName = "Guidance Agent", 
+  agentName = "Guidance Agent",
+  onAppendMessages,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,8 +45,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
   }, [messages]);
 
   const { theme } = useTheme();
+  const [voiceVisible, setVoiceVisible] = useState(false);
   return (
-    <div className={`chat-container${theme === 'dark' ? ' dark-theme' : ''}`}> 
+    <div className={`chat-container${theme === "dark" ? " dark-theme" : ""}`}>
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="welcome-message">
@@ -59,7 +65,8 @@ const ChatUI: React.FC<ChatUIProps> = ({
                     className="avatar-image"
                     onError={(e) => {
                       console.error("Failed to load OpenAI image");
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
                     }}
                   />
                 </div>
@@ -67,9 +74,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
               <div className="message-content">
                 <div className="message-text">
                   {message.role === "assistant"
-                   ? (typeof message.content === 'string' 
-                        ? formatMessage(message.content) 
-                        : message.content) 
+                    ? typeof message.content === "string"
+                      ? formatMessage(message.content)
+                      : message.content
                     : message.content}
                 </div>
               </div>
@@ -81,7 +88,8 @@ const ChatUI: React.FC<ChatUIProps> = ({
                     className="avatar-image"
                     onError={(e) => {
                       console.error("Failed to load AI_RT image");
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
                     }}
                   />
                 </div>
@@ -135,7 +143,8 @@ const ChatUI: React.FC<ChatUIProps> = ({
                   className="avatar-image"
                   onError={(e) => {
                     console.error("Failed to load OpenAI image");
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
                   }}
                 />
               </div>
@@ -202,9 +211,44 @@ const ChatUI: React.FC<ChatUIProps> = ({
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
             </button>
+            {agentName.toLowerCase().includes("guidance") && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setVoiceVisible(true);
+                }}
+                onClick={(e) => {
+                  // stop propagation in case other global listeners are present
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setVoiceVisible(true);
+                }}
+                className="input-btn voice-btn"
+                title="Voice chat"
+              >
+                🎤
+              </button>
+            )}
           </div>
         </div>
       </div>
+      <VoiceChatPopup
+        visible={voiceVisible}
+        onClose={(collected) => {
+          setVoiceVisible(false);
+          if (!collected || collected.length === 0) return;
+          // convert collected to ChatUI Message shape and call parent's append handler if provided
+          const toAppend = collected.map((m) => ({
+            role: m.role === "agent" ? "assistant" : "user",
+            content: m.text,
+          }));
+          if (onAppendMessages) {
+            onAppendMessages(toAppend as any);
+          }
+        }}
+      />
     </div>
   );
 };

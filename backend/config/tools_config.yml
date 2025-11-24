@@ -80,6 +80,18 @@ stories_rag:
   chunk_size: 50
   chunk_overlap: 5
   k: 2
+  
+ugc_circulars_rag:
+  llm: "openai"  # or your LLM for RAG generation
+  llm_temperature: 0.0
+  embedding_model: "intfloat/e5-base-v2"
+  vectordb: "data/vectordb/ugc_circulars_vectordb"
+  unstructured_docs: "data/documents/ugc_circulars"
+  k: 3
+  chunk_size: 400
+  chunk_overlap: 60
+  collection_name: "ugc_circulars_rag"
+
 
 travel_sqlagent_configs:
   travel_sqldb_dir: "backend/data/databases/travel.sqlite"

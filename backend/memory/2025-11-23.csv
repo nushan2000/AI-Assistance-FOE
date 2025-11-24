@@ -1,4 +1,5 @@
 thread_id,timestamp,user_query,response
+<<<<<<< HEAD
 1,15:53:51,Hello.,"
 Hello! How can I help you today? I have access to several resources that might be useful:
 
@@ -93,3 +94,95 @@ Hello! I'm here to help you with information about university resources. I have 
 4. **Faculty of Engineering Search** - I can provide specific information about the Faculty of Engineering at University of Ruhuna
 
 What specific information or solution are you looking for? Feel free to ask me any questions related to these areas, and I'll do my best to help you!"
+=======
+1,00:57:58,who are u?,"
+I'm Claude, an AI assistant created by Anthropic. I'm designed to be helpful, harmless, and honest in my interactions.
+
+I can help you with a wide variety of tasks including:
+- Answering questions and providing information
+- Writing and editing text
+- Analyzing and summarizing content
+- Research and information gathering
+- Problem-solving and reasoning
+- Creative tasks like writing stories or brainstorming
+
+I have access to certain tools that allow me to look up specific information, such as UGC (University Grants Commission) circulars and documents. However, I don't have access to the internet or real-time data beyond what's available through my tools.
+
+I aim to be clear about my capabilities and limitations, and I'll let you know if there's something I can't help with. How can I assist you today?"
+1,01:00:14,do you have 2025 ugc circulars information?,"
+Yes, I do have information about 2025 UGC circulars. I found a recent circular from July 2025:
+
+**UGC Circular No. 06/2025** - Dated July 09, 2025
+
+This circular is about **""Incorporation of the Course 'Learning to Live with Diversity' into University Undergraduate Orientation Programmes""**.
+
+Key points from this circular:
+- The University Grants Commission decided at its 1145th meeting on April 23, 2025 to direct all universities to incorporate this course
+- The course contains 15 lessons focusing on diversity, gender diversity, social identity, inclusion, ethics, and non-violent behavior
+- It's designed for undergraduates as well as academic and non-academic staff
+- Training of Trainers (TOT) sessions have been completed at all 17 universities
+- All universities are requested to integrate the course content into their orientation programs with immediate effect
+
+This circular is based on research conducted by the Center for Gender Equity & Equality on ragging and sexual and gender-based violence in universities.
+
+Would you like me to search for any other specific 2025 UGC circulars or information on particular topics?"
+1,12:41:47,do you have 2025 and 2024 ugc circulars information?,"
+Yes, I found some information about UGC circulars for both 2025 and 2024. However, the text appears to have some formatting or encoding issues that make it difficult to read clearly.
+
+**For 2025 UGC Circulars:**
+- There's mention of ""Temporary lecturer U - AC 2 - 2025"" with a reference amount of 85,305
+- Salary structure information showing basic salaries ranging from Rs. 41,095 to Rs. 45,055
+- Total compensation amounts ranging from Rs. 72,807 to Rs. 102,058
+- Various allowances and percentages mentioned (45% MCA, 23% rotation, etc.)
+- Dates referenced include ""As at 01/01/2025"" and ""As at 01/01/2026""
+
+**For 2024 UGC Circulars:**
+- References to various allowances including amounts like Rs. 12,800, Rs. 10,000, and Rs. 5,000
+- A specific date reference: ""2024.01.12"" with mention of ""61.17,800/-""
+- Various salary components and allowances mentioned
+
+The information appears to be related to salary structures, allowances, and financial provisions for academic positions, but the text corruption makes it challenging to provide complete details. Would you like me to search for more specific information about particular aspects of these circulars?"
+1,12:46:01,what are the give 2025 and 2024 ugc circulars information?,"
+Based on the UGC circulars information I found, here are the key details for 2025 and 2024:
+
+## 2025 UGC Circular Information:
+
+**File Reference:** UGC/F9/Burs/2025
+
+**Key Details:**
+- **Effective Date:** 1st April 2025
+- **Contact Person:** Senior Assistant Accountant / UGC
+- **Contact Number:** 011-2123485
+- **Purpose:** Financial and administrative provisions for higher education institutions
+
+**Recipients Include:**
+- Chairman, Secretary / Ministry of Education, Higher Education and Vocational Education
+- Vice-Chairman/UGC, Secretary/UGC
+- Deans of faculties
+- Registrars of Universities
+- Accountant/UGC
+- Bursars of Universities
+- Librarians/SAL/AL of Higher Educational Institutions
+- Various administrative officers and auditors
+
+## 2024 UGC Circular Information:
+
+**Key Details:**
+- **Effective Date:** 01.03.2024 (for some provisions)
+- **Purpose:** Administrative and operational guidelines for higher education institutions
+
+**Recipients Include:**
+- Secretary/ Ministry of Education
+- Vice-Chairman/UGC, Members of the UGC
+- Secretary/UGC
+- Registrars of Universities
+- Deans of Faculties
+- Accountant/UGC
+- Bursars of Universities
+- Librarians/SAL/AL of Higher Educational Institutions
+- Deputy Registrars and other campus officials
+
+**Additional Reference:** There's also mention of provisions from 15.03.2022 that remain unchanged.
+
+These circulars appear to be official UGC communications regarding financial administration, operational procedures, and guidelines for higher education institutions in Sri Lanka. The 2025 circular specifically deals with financial provisions coming into effect in April 2025."
+>>>>>>> 82a2bec69dff11134e86e81368f4a01acf2f4ddd
