@@ -12,13 +12,18 @@ const isUndergraduate = (userId?: string | null) =>
   userRoleUtils.isUndergraduate(userId as any);
 
 export async function uploadVoice(opts: UploadVoiceOptions) {
-  const { blob, sessionId, userId, backendBase, onProgress } = opts;
+  const { blob, sessionId, userId, onProgress } = opts;
 
-  const base = (
-    backendBase ||
-    process.env.REACT_APP_API_BASE ||
-    "http://localhost:8000"
-  ).replace(/\/$/, "");
+  let appGuidanceBase: string | undefined = undefined;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const appMod = require("../App") as any;
+    appGuidanceBase = appMod && appMod.Guidance_Base_URL;
+  } catch (e) {
+    appGuidanceBase = undefined;
+  }
+
+  const base = (appGuidanceBase || "http://localhost:9000").replace(/\/$/, "");
 
   const endpoint = isUndergraduate(userId)
     ? "/ruh/chat/voice"
