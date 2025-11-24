@@ -4,6 +4,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { useNotification } from "../../context/NotificationContext";
 import { uploadVoice } from "../../services/voice";
 import MicIcon from "@mui/icons-material/Mic";
 import IconButton from "@mui/material/IconButton";
@@ -16,6 +17,7 @@ interface VoiceRecorderProps {
   onVoiceSend?: () => void; // called when upload starts
   onVoiceResponse?: (resp: any) => void; // full backend response for voice
   showControls?: boolean;
+  showTimer?: boolean;
   onRecordingChange?: (isRecording: boolean) => void;
 }
 
@@ -29,6 +31,7 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
       onVoiceSend,
       onVoiceResponse,
       showControls = true,
+      showTimer = true,
       onRecordingChange,
     },
     ref
@@ -38,6 +41,7 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
     // Removed local preview/download state: we don't keep blobs locally
     const [recordSeconds, setRecordSeconds] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const { notify } = useNotification();
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -88,7 +92,13 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
         }, 1000) as unknown as number;
       } catch (err: any) {
         console.error("VoiceRecorder start error", err);
-        setError(err?.message || "Microphone access denied or not available");
+        const msg = err?.message || "Microphone access denied or not available";
+        setError(msg);
+        try {
+          notify('error', 'Microphone Permission', msg, 7000);
+        } catch (e) {
+          console.warn('notify failed', e);
+        }
       }
     };
 
@@ -135,10 +145,13 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
         }
       } catch (err) {
         console.error("Voice upload failed", err);
-        setError(
-          (err as any)?.message ||
-            "Failed to upload audio or transcribe. Try again."
-        );
+        const msg = (err as any)?.message || "Failed to upload audio or transcribe. Try again.";
+        setError(msg);
+        try {
+          notify('error', 'Upload Failed', msg, 7000);
+        } catch (e) {
+          console.warn('notify failed', e);
+        }
       } finally {
         setUploading(false);
         chunksRef.current = [];
@@ -166,7 +179,7 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
           </IconButton>
         )}
 
-        {isRecording && (
+        {isRecording && showTimer && (
           <div
             style={{ fontSize: 12, color: "#c62828", minWidth: 48 }}
           >{`${Math.floor(recordSeconds / 60)
