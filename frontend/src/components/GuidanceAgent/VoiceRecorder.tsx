@@ -18,6 +18,7 @@ interface VoiceRecorderProps {
   onVoiceResponse?: (resp: any) => void; // full backend response for voice
   showControls?: boolean;
   showTimer?: boolean;
+  showUploading?: boolean;
   onRecordingChange?: (isRecording: boolean) => void;
 }
 
@@ -32,6 +33,7 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
       onVoiceResponse,
       showControls = true,
       showTimer = true,
+      showUploading = true,
       onRecordingChange,
     },
     ref
@@ -67,15 +69,22 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
           if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
         };
 
+        // onstop will either upload the blob or be ignored if cancel() was called
         recorder.onstop = async () => {
-          const blob = new Blob(chunksRef.current, {
-            type: chunksRef.current[0]?.type || "audio/webm",
-          });
-          // Do not store blob locally; it will be uploaded then discarded
           // stop tracks
           if (mediaStreamRef.current) {
             mediaStreamRef.current.getTracks().forEach((t) => t.stop());
             mediaStreamRef.current = null;
+          }
+          const ignore = ignoreOnStopRef.current;
+          const blob = new Blob(chunksRef.current, {
+            type: chunksRef.current[0]?.type || "audio/webm",
+          });
+          if (ignore) {
+            // clear chunks and reset flag
+            chunksRef.current = [];
+            ignoreOnStopRef.current = false;
+            return;
           }
           // upload automatically
           await uploadBlob(blob);
@@ -95,9 +104,9 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
         const msg = err?.message || "Microphone access denied or not available";
         setError(msg);
         try {
-          notify('error', 'Microphone Permission', msg, 7000);
+          notify("error", "Microphone Permission", msg, 7000);
         } catch (e) {
-          console.warn('notify failed', e);
+          console.warn("notify failed", e);
         }
       }
     };
@@ -119,6 +128,36 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
           window.clearInterval(timerRef.current);
           timerRef.current = null;
         }
+      }
+    };
+
+    const cancel = () => {
+      try {
+        // mark that onstop should not trigger upload
+        ignoreOnStopRef.current = true;
+        if (
+          mediaRecorderRef.current &&
+          mediaRecorderRef.current.state !== "inactive"
+        ) {
+          mediaRecorderRef.current.stop();
+        }
+      } catch (err) {
+        console.warn("cancel error", err);
+      } finally {
+        // ensure tracks stopped
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+          mediaStreamRef.current = null;
+        }
+        chunksRef.current = [];
+        setIsRecording(false);
+        onRecordingChange?.(false);
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        // reset flag just in case
+        ignoreOnStopRef.current = false;
       }
     };
 
@@ -145,12 +184,14 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
         }
       } catch (err) {
         console.error("Voice upload failed", err);
-        const msg = (err as any)?.message || "Failed to upload audio or transcribe. Try again.";
+        const msg =
+          (err as any)?.message ||
+          "Failed to upload audio or transcribe. Try again.";
         setError(msg);
         try {
-          notify('error', 'Upload Failed', msg, 7000);
+          notify("error", "Upload Failed", msg, 7000);
         } catch (e) {
-          console.warn('notify failed', e);
+          console.warn("notify failed", e);
         }
       } finally {
         setUploading(false);
@@ -160,9 +201,13 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
     };
 
     // No local preview or object URLs: we avoid storing audio locally
+    // internal flag to let cancel() skip upload in onstop
+    const ignoreOnStopRef = useRef<boolean>(false);
+
     useImperativeHandle(ref, () => ({
       start: () => start(),
       stop: () => stop(),
+      cancel: () => cancel(),
       isRecording: () => isRecording,
     }));
 
@@ -189,7 +234,9 @@ const VoiceRecorder = forwardRef<any, VoiceRecorderProps>(
             .padStart(2, "0")}`}</div>
         )}
 
-        {uploading && <div style={{ fontSize: 12 }}>Uploading...</div>}
+        {uploading && showUploading && (
+          <div style={{ fontSize: 12 }}>Uploading...</div>
+        )}
         {error && <div style={{ color: "red", fontSize: 12 }}>{error}</div>}
 
         {/* No local preview/download UI for privacy and to avoid local storage */}

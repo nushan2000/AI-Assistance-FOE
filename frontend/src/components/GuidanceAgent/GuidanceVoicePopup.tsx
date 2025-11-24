@@ -1,9 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import VoiceRecorder from "./VoiceRecorder";
 import "./GuidanceVoicePopup.css";
-import MicIcon from '@mui/icons-material/Mic';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import MicIcon from "@mui/icons-material/Mic";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
+import SyncIcon from "@mui/icons-material/Sync";
 import { useNotification } from "../../context/NotificationContext";
 
 type Props = {
@@ -30,23 +36,34 @@ export default function VoiceChatPopupImpl({
   const [error, setError] = useState<string | null>(null);
   const [elapsedSecs, setElapsedSecs] = useState<number>(0);
   const { notify } = useNotification();
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioUrlRef = useRef<string | null>(null);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [firstInteraction, setFirstInteraction] = useState<boolean>(true);
 
   useEffect(() => {
     if (open) {
+      // when the popup opens, treat it as the first interaction until user sends
+      setFirstInteraction(true);
       const t = setTimeout(() => {
         try {
           recorderRef.current?.start();
           setState("recording");
         } catch (e) {
           console.warn("Failed to start recorder on open", e);
-          const errMsg = (e && (e as any).name === 'NotAllowedError') || (e && typeof (e as any).message === 'string' && (e as any).message.toLowerCase().includes('permission'))
-            ? 'Microphone access was denied. Please enable microphone permissions in your browser settings.'
-            : 'Unable to access microphone.';
+          const errMsg =
+            (e && (e as any).name === "NotAllowedError") ||
+            (e &&
+              typeof (e as any).message === "string" &&
+              (e as any).message.toLowerCase().includes("permission"))
+              ? "Microphone access was denied. Please enable microphone permissions in your browser settings."
+              : "Unable to access microphone.";
           setError(errMsg);
           try {
-            notify('error', 'Microphone Permission', errMsg, 8000);
+            notify("error", "Microphone Permission", errMsg, 8000);
           } catch (notifyErr) {
-            console.warn('Notification failed', notifyErr);
+            console.warn("Notification failed", notifyErr);
           }
         }
       }, 200);
@@ -80,6 +97,66 @@ export default function VoiceChatPopupImpl({
     };
   }, [state]);
 
+  // speaking state does not show a timer; playback controls are simple pause/stop
+  useEffect(() => {
+    if (state !== "speaking") setIsPaused(false);
+  }, [state]);
+
+  function handlePauseResume() {
+    try {
+      if (isPaused) {
+        // resume
+        if (currentAudioRef.current) {
+          currentAudioRef.current.play().catch(() => {});
+        } else if (window.speechSynthesis && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        setIsPaused(false);
+      } else {
+        // pause
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause();
+        } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause();
+        }
+        setIsPaused(true);
+      }
+    } catch (e) {
+      console.warn("pause/resume failed", e);
+    }
+  }
+
+  async function handleStopPlayback() {
+    try {
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+        } catch (_) {}
+        try {
+          if (
+            currentAudioUrlRef.current &&
+            currentAudioUrlRef.current.startsWith("blob:")
+          ) {
+            URL.revokeObjectURL(currentAudioUrlRef.current);
+          }
+        } catch (_) {}
+        currentAudioRef.current = null;
+        currentAudioUrlRef.current = null;
+      }
+      if (window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.warn("stop playback failed", e);
+    } finally {
+      setState("idle");
+      setIsPaused(false);
+      await restartRecordingIfOpen();
+    }
+  }
+
   function formatTime(sec: number) {
     const m = Math.floor(sec / 60)
       .toString()
@@ -89,11 +166,52 @@ export default function VoiceChatPopupImpl({
   }
 
   function handleVoiceSend() {
+    setUploading(true);
+    setFirstInteraction(false);
     setState("thinking");
   }
 
   function handleTranscription(text: string) {
     setTranscript(text);
+  }
+
+  async function restartRecordingIfOpen() {
+    if (!open) return;
+    try {
+      // attempt to start the recorder again
+      await recorderRef.current?.start?.();
+      setState("recording");
+    } catch (e) {
+      console.warn("Failed to restart recorder after playback", e);
+      const msg =
+        (e && (e as any).name === "NotAllowedError") ||
+        (e &&
+          typeof (e as any).message === "string" &&
+          (e as any).message.toLowerCase().includes("permission"))
+          ? "Microphone access was denied. Please enable microphone permissions in your browser settings."
+          : "Unable to access microphone to restart recording.";
+      setError(msg);
+      try {
+        notify("error", "Microphone", msg, 6000);
+      } catch (_) {
+        /* ignore */
+      }
+      setState("idle");
+    }
+  }
+
+  function getTopChip() {
+    if (uploading) return "Uploading...";
+    if (state === "speaking") return "System is talking...";
+    if (state === "thinking") return "Processing...";
+    if (state === "recording") return "Your next question...";
+    if (open && firstInteraction) return "What is your question?";
+    if (transcript) {
+      const preview =
+        transcript.length > 28 ? transcript.slice(0, 28) + "..." : transcript;
+      return `Ask a follow-up about: "${preview}"`;
+    }
+    return "You can ask anything";
   }
 
   async function playAssistantAudio(resp: any) {
@@ -108,20 +226,44 @@ export default function VoiceChatPopupImpl({
           if (r.ok) {
             const blob = await r.blob();
             const blobUrl = URL.createObjectURL(blob);
+            // remember URL so we can revoke later
+            currentAudioUrlRef.current = blobUrl;
+            // stop any existing audio
+            if (currentAudioRef.current) {
+              try {
+                currentAudioRef.current.pause();
+              } catch (_) {}
+              currentAudioRef.current = null;
+            }
             const audio = new Audio(blobUrl);
+            currentAudioRef.current = audio;
             setState("speaking");
-            audio.onended = () => {
+            audio.onended = async () => {
               try {
-                URL.revokeObjectURL(blobUrl);
+                if (
+                  currentAudioUrlRef.current &&
+                  currentAudioUrlRef.current.startsWith("blob:")
+                ) {
+                  URL.revokeObjectURL(currentAudioUrlRef.current);
+                }
               } catch (_) {}
-              setState("idle");
+              currentAudioRef.current = null;
+              currentAudioUrlRef.current = null;
+              await restartRecordingIfOpen();
             };
-            audio.onerror = (e) => {
+            audio.onerror = async (e) => {
               try {
-                URL.revokeObjectURL(blobUrl);
+                if (
+                  currentAudioUrlRef.current &&
+                  currentAudioUrlRef.current.startsWith("blob:")
+                ) {
+                  URL.revokeObjectURL(currentAudioUrlRef.current);
+                }
               } catch (_) {}
-              setState("idle");
+              currentAudioRef.current = null;
+              currentAudioUrlRef.current = null;
               console.warn("playAssistantAudio: audio playback error", e);
+              await restartRecordingIfOpen();
             };
             try {
               await audio.play();
@@ -132,24 +274,47 @@ export default function VoiceChatPopupImpl({
               );
               // ensure state resets if play failed
               try {
-                URL.revokeObjectURL(blobUrl);
+                if (
+                  currentAudioUrlRef.current &&
+                  currentAudioUrlRef.current.startsWith("blob:")
+                ) {
+                  try {
+                    URL.revokeObjectURL(currentAudioUrlRef.current);
+                  } catch (_) {}
+                }
               } catch (_) {}
+              currentAudioRef.current = null;
+              currentAudioUrlRef.current = null;
               setState("idle");
             }
             return;
           }
         } catch (err) {
           try {
+            if (currentAudioRef.current) {
+              try {
+                currentAudioRef.current.pause();
+              } catch (_) {}
+              currentAudioRef.current = null;
+            }
             const audio = new Audio(resp.audio_url);
             audio.crossOrigin = "anonymous";
+            currentAudioRef.current = audio;
+            currentAudioUrlRef.current = resp.audio_url;
             setState("speaking");
-            audio.onended = () => setState("idle");
-            audio.onerror = (e) => {
-              setState("idle");
+            audio.onended = async () => {
+              currentAudioRef.current = null;
+              currentAudioUrlRef.current = null;
+              await restartRecordingIfOpen();
+            };
+            audio.onerror = async (e) => {
+              currentAudioRef.current = null;
+              currentAudioUrlRef.current = null;
               console.warn(
                 "playAssistantAudio: direct audio_url playback failed",
                 e
               );
+              await restartRecordingIfOpen();
             };
             try {
               await audio.play();
@@ -158,6 +323,7 @@ export default function VoiceChatPopupImpl({
                 "playAssistantAudio: direct audio.play() rejected",
                 playErr
               );
+              currentAudioRef.current = null;
               setState("idle");
             }
             return;
@@ -180,20 +346,42 @@ export default function VoiceChatPopupImpl({
             type: resp.audio_mime || "audio/mpeg",
           });
           const url = URL.createObjectURL(blob);
+          currentAudioUrlRef.current = url;
+          if (currentAudioRef.current) {
+            try {
+              currentAudioRef.current.pause();
+            } catch (_) {}
+            currentAudioRef.current = null;
+          }
           const audio = new Audio(url);
+          currentAudioRef.current = audio;
           setState("speaking");
-          audio.onended = () => {
+          audio.onended = async () => {
             try {
-              URL.revokeObjectURL(url);
+              if (
+                currentAudioUrlRef.current &&
+                currentAudioUrlRef.current.startsWith("blob:")
+              ) {
+                URL.revokeObjectURL(currentAudioUrlRef.current);
+              }
             } catch (_) {}
-            setState("idle");
+            currentAudioRef.current = null;
+            currentAudioUrlRef.current = null;
+            await restartRecordingIfOpen();
           };
-          audio.onerror = (e) => {
+          audio.onerror = async (e) => {
             try {
-              URL.revokeObjectURL(url);
+              if (
+                currentAudioUrlRef.current &&
+                currentAudioUrlRef.current.startsWith("blob:")
+              ) {
+                URL.revokeObjectURL(currentAudioUrlRef.current);
+              }
             } catch (_) {}
-            setState("idle");
+            currentAudioRef.current = null;
+            currentAudioUrlRef.current = null;
             console.warn("playAssistantAudio: base64 audio playback failed", e);
+            await restartRecordingIfOpen();
           };
           try {
             await audio.play();
@@ -203,8 +391,15 @@ export default function VoiceChatPopupImpl({
               playErr
             );
             try {
-              URL.revokeObjectURL(url);
+              if (
+                currentAudioUrlRef.current &&
+                currentAudioUrlRef.current.startsWith("blob:")
+              ) {
+                URL.revokeObjectURL(currentAudioUrlRef.current);
+              }
             } catch (_) {}
+            currentAudioRef.current = null;
+            currentAudioUrlRef.current = null;
             setState("idle");
           }
           return;
@@ -220,10 +415,21 @@ export default function VoiceChatPopupImpl({
         resp?.reply ||
         resp?.answer;
       if (text && window.speechSynthesis) {
+        // stop any currently playing audio
+        if (currentAudioRef.current) {
+          try {
+            currentAudioRef.current.pause();
+          } catch (_) {}
+          currentAudioRef.current = null;
+        }
         const ut = new SpeechSynthesisUtterance(text);
         setState("speaking");
-        ut.onend = () => setState("idle");
-        ut.onerror = () => setState("idle");
+        ut.onend = async () => {
+          await restartRecordingIfOpen();
+        };
+        ut.onerror = async () => {
+          await restartRecordingIfOpen();
+        };
         window.speechSynthesis.speak(ut);
         return;
       }
@@ -239,10 +445,12 @@ export default function VoiceChatPopupImpl({
       // because voice playback is the primary communication channel in this popup.
       // Backend response text will still be voiced via playAssistantAudio.
       await playAssistantAudio(resp || {});
+      setUploading(false);
     } catch (e) {
       console.error("handleVoiceResponse error", e);
-    } finally {
+      // If playback failed, ensure we leave the popup in idle so the user can retry
       if (open) setState("idle");
+      setUploading(false);
     }
   }
 
@@ -254,15 +462,74 @@ export default function VoiceChatPopupImpl({
     }
   }
 
+  function handleCloseClick() {
+    // Always attempt to release the microphone/recorder when closing the popup.
+    // This calls the recorder's `cancel()` which stops tracks and prevents upload.
+    try {
+      recorderRef.current?.cancel?.();
+      setState("idle");
+      setUploading(false);
+    } catch (e) {
+      console.warn("cancel on close failed", e);
+    }
+
+    // If speaking, stop playback immediately (also cancel any speechSynthesis)
+    try {
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+        } catch (_) {}
+        try {
+          if (
+            currentAudioUrlRef.current &&
+            currentAudioUrlRef.current.startsWith("blob:")
+          ) {
+            URL.revokeObjectURL(currentAudioUrlRef.current);
+          }
+        } catch (_) {}
+        currentAudioRef.current = null;
+        currentAudioUrlRef.current = null;
+        setState("idle");
+      }
+      if (window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.warn("stop audio on close failed", e);
+    }
+
+    onClose();
+    // Refresh the page after closing the popup to ensure app state is fully reset.
+    // A short timeout lets the popup closing animation complete and ensures
+    // MediaStream tracks have been stopped before reload.
+    try {
+      setTimeout(() => {
+        try {
+          window.location.reload();
+        } catch (e) {
+          console.warn("Page reload failed", e);
+        }
+      }, 150);
+    } catch (e) {
+      console.warn("scheduling reload failed", e);
+    }
+  }
+
   return open ? (
     <div className="gvp-root">
-      <div className="gvp-overlay" onClick={onClose} />
+      <div className="gvp-overlay" onClick={handleCloseClick} />
       <div className="gvp-card">
         <div className="gvp-header">
-          <strong>Guidance Voice</strong>
-          <button onClick={onClose} aria-label="Close" className="gvp-close">
-            Close
-          </button>
+          <strong></strong>
+          <IconButton
+            onClick={handleCloseClick}
+            aria-label="Close"
+            className="gvp-close"
+          >
+            <CloseIcon />
+          </IconButton>
         </div>
 
         {/* base talking gif will be shown inside the visual area; badges overlay below */}
@@ -274,6 +541,7 @@ export default function VoiceChatPopupImpl({
             userEmail={userEmail}
             showControls={false}
             showTimer={false}
+            showUploading={false}
             onVoiceSend={handleVoiceSend}
             onVoiceResponse={handleVoiceResponse}
             onTranscription={handleTranscription}
@@ -281,34 +549,66 @@ export default function VoiceChatPopupImpl({
 
           <div className="gvp-visual">
             <div className="gvp-gif-container">
-              <img src="/talking.gif" alt="Assistant" className="gvp-gif-base" />
+              <img
+                src="/talking.gif"
+                alt="Assistant"
+                className="gvp-gif-base"
+              />
+
+              <div className="gvp-top-chip" role="status">
+                {getTopChip()}
+              </div>
 
               <div className="gvp-center-icon">
-                {state === 'recording' && (
-                  <MicIcon className="gvp-center-svg" onClick={onClickListening} />
+                {state === "recording" && (
+                  <MicIcon
+                    className="gvp-center-svg"
+                    onClick={onClickListening}
+                  />
                 )}
-                {state === 'thinking' && (
-                  <CloudUploadIcon className="gvp-center-svg" />
+                {state === "thinking" && (
+                  <SyncIcon className="gvp-center-svg" />
                 )}
-                {state === 'speaking' && (
+                {state === "speaking" && (
                   <VolumeUpIcon className="gvp-center-svg" />
                 )}
               </div>
               {/* timer overlay (shows while recording) */}
-              {state === 'recording' && (
+              {state === "recording" && (
                 <div className="gvp-timer" role="status">
-                  <span className="gvp-timer-text">{formatTime(elapsedSecs)}</span>
+                  <span className="gvp-timer-text">
+                    {formatTime(elapsedSecs)}
+                  </span>
                   <button
                     className="gvp-send-btn"
                     onClick={() => {
                       try {
                         recorderRef.current?.stop();
                       } catch (e) {
-                        console.warn('send click stop failed', e);
+                        console.warn("send click stop failed", e);
                       }
                     }}
                   >
                     Send
+                  </button>
+                </div>
+              )}
+              {/* playback controls positioned absolutely over the gif */}
+              {state === "speaking" && (
+                <div className="gvp-playback-controls">
+                  <button
+                    className="gvp-play-btn"
+                    onClick={handlePauseResume}
+                    aria-label={isPaused ? "Resume" : "Pause"}
+                  >
+                    {isPaused ? <PlayArrowIcon /> : <PauseIcon />}
+                  </button>
+                  <button
+                    className="gvp-stop-btn"
+                    onClick={handleStopPlayback}
+                    aria-label="Stop"
+                  >
+                    <StopIcon />
                   </button>
                 </div>
               )}

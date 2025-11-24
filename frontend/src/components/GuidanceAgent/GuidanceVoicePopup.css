@@ -20,7 +20,7 @@
     border-radius: 14px;
     padding: 24px;
     width: 600px;
-    min-height: 580px;
+    min-height: 480px;
     max-width: calc(100% - 32px);
     box-shadow: 0 14px 48px rgba(0, 0, 0, 0.35);
     z-index: 1401;
@@ -38,10 +38,10 @@
   }
 
   .gvp-body {
-    margin-top: 12px;
+    /* margin-top: 12px; */
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    /* gap: 18px; */
     align-items: center;
   }
 
@@ -84,10 +84,28 @@
   }
 
   .gvp-center-svg {
-    width: 70px !important;
-    height: 70px !important;
+    width: 50px !important;
+    height: 50px !important;
     color: rgba(105, 105, 105, 0.6);
     pointer-events: auto; /* allow clicking when shown */
+  }
+
+  /* Top chip overlay (small label above the gif) */
+  .gvp-top-chip {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    z-index: 1406;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+    font-weight: 600;
   }
 
   /* Timer overlay positioned on the gif (bottom center) */
@@ -153,6 +171,37 @@
   }
   .gvp-error {
     color: #b00020;
+  }
+
+  .gvp-playback-controls {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 40px; /* placed 50px above bottom of gif */
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    z-index: 1407;
+    pointer-events: auto;
+  }
+  .gvp-play-btn {
+    background: transparent;
+    border: 2px solid #8b4513;
+    color: #8b4513;
+    padding: 5px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+  .gvp-stop-btn {
+    background: #8b4513;
+    color: #fff;
+    border: none;
+    padding: 7px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   }
 
   @media (max-width: 900px) {
