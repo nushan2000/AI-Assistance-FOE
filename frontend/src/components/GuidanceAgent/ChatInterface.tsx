@@ -755,9 +755,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </button>
 
               <button
+                onClick={() => setVoicePopupVisible(true)}
+                disabled={isLoading || !currentUser}
+                className="input-btn mic-btn"
+                title="Voice input"
+                aria-label="Open voice input"
+                type="button"
+              >
+                <MicIcon />
+              </button>
+
+              <button
                 onClick={handleNewChat}
                 className="input-btn new-chat-btn"
                 title="Start a new chat"
+                type="button"
               >
                 <LibraryAddIcon />
               </button>
