@@ -23,35 +23,8 @@ import { fetchUserEmailFromProfile } from "../../services/chatAPI";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import type { SelectChangeEvent } from "@mui/material/Select";
-interface Message {
-  role: "user" | "assistant";
-  content: string | JSX.Element;
-  recommendations?: Recommendation[];
-  showRecommendations?: boolean;
-}
-
-interface Recommendation {
-  type?: string;
-  score?: number;
-  reason?: string;
-  suggestion?: {
-    room_id?: string;
-    room_name?: string;
-    capacity?: number;
-    description?: string;
-    start_time?: string;
-    end_time?: string;
-    confidence?: number;
-  };
-  data_source?: string;
-}
-
-const RECOMMENDATION_TYPES = {
-  alternative_room: "🏢 Alternative Room",
-  proactive: "🎯 Proactive Suggestion",
-  smart_scheduling: "🧠 Smart Scheduling",
-  default: "💡 Recommendation",
-} as const;
+import { Message, Recommendation } from "../../utils/types";
+import { RECOMMENDATION_TYPES } from "../../utils/CONSTANTS";
 
 const BookingChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -60,13 +33,13 @@ const BookingChatInterface: React.FC = () => {
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSwap, setIsSwap] = useState(false);
-  const [roomOptions, setRoomOptions] = useState<string[]>([]);
+  // const [roomOptions, setRoomOptions] = useState<string[]>([]);
   // const roomOptions = ["LT1", "LT2", "Lab1", "Lab2"]; // Add as needed
   // const moduleOptions = ["CE001", "CE002", "CS101", "ME202"];
-  const [bookingId, setBookingId] = useState<number | null>(null);
+  // const [bookingId, setBookingId] = useState<number | null>(null);
   const [moduleOptions, setModuleOptions] = useState<string[]>([]);
   const [selectedRoomOptions, setSelectedRoomOptions] = useState<string[]>([]);
-  const [moduleCode, setModuleCode] = useState<string | null>(null);
+  // const [moduleCode, setModuleCode] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     room_name: "LT1",
     name: "",

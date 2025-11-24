@@ -44,3 +44,10 @@ export const TITLE_OPTIONS = [
   { value: "prof", label: "Prof" },
   { value: "dr", label: "Dr" },
 ];
+
+export const RECOMMENDATION_TYPES = {
+  alternative_room: "🏢 Alternative Room",
+  proactive: "🎯 Proactive Suggestion",
+  smart_scheduling: "🧠 Smart Scheduling",
+  default: "💡 Recommendation",
+} as const;

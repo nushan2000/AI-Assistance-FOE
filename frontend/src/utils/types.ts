@@ -87,3 +87,31 @@ export interface OTPPopupProps {
   onClose: () => void;
   onResend?: () => void;
 }
+
+export interface Message {
+  role: "user" | "assistant";
+  content: string | JSX.Element;
+  recommendations?: Recommendation[];
+  showRecommendations?: boolean;
+}
+
+export interface Recommendation {
+  type?: string;
+  score?: number;
+  reason?: string;
+  suggestion?: {
+    room_id?: string;
+    room_name?: string;
+    capacity?: number;
+    description?: string;
+    start_time?: string;
+    end_time?: string;
+    confidence?: number;
+  };
+  data_source?: string;
+}
+
+export interface CalendarProps {
+  refreshKey?: any;
+  onCellClick?: (cell: any) => void;
+}
