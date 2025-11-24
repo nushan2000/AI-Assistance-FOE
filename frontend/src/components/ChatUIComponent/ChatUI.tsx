@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import VoiceChatPopup from "./VoiceChatPopup";
 
 export interface Message {
   role: "user" | "assistant";
@@ -45,7 +44,6 @@ const ChatUI: React.FC<ChatUIProps> = ({
   }, [messages]);
 
   const { theme } = useTheme();
-  const [voiceVisible, setVoiceVisible] = useState(false);
   return (
     <div className={`chat-container${theme === "dark" ? " dark-theme" : ""}`}>
       <div className="chat-messages">
@@ -211,44 +209,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
                 <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
             </button>
-            {agentName.toLowerCase().includes("guidance") && (
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setVoiceVisible(true);
-                }}
-                onClick={(e) => {
-                  // stop propagation in case other global listeners are present
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setVoiceVisible(true);
-                }}
-                className="input-btn voice-btn"
-                title="Voice chat"
-              >
-                🎤
-              </button>
-            )}
           </div>
         </div>
       </div>
-      <VoiceChatPopup
-        visible={voiceVisible}
-        onClose={(collected) => {
-          setVoiceVisible(false);
-          if (!collected || collected.length === 0) return;
-          // convert collected to ChatUI Message shape and call parent's append handler if provided
-          const toAppend = collected.map((m) => ({
-            role: m.role === "agent" ? "assistant" : "user",
-            content: m.text,
-          }));
-          if (onAppendMessages) {
-            onAppendMessages(toAppend as any);
-          }
-        }}
-      />
     </div>
   );
 };
