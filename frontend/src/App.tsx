@@ -38,6 +38,8 @@ const LoaderOnRouteChange: React.FC = () => {
   return <GlobalLoader show={loading} />;
 };
 
+export const Guidance_Base_URL = process.env.REACT_APP_API_BASE_GUIDANCE;
+
 const App: React.FC = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
