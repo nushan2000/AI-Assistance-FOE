@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import VoiceRecorder from "./VoiceRecorder";
 import "./GuidanceVoicePopup.css";
 import MicIcon from "@mui/icons-material/Mic";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";

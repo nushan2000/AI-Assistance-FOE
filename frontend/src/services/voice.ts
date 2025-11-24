@@ -13,18 +13,10 @@ export type UploadVoiceOptions = {
   backendBase?: string; // optional override of REACT_APP_API_BASE
   onProgress?: (percent: number) => void;
 };
+import userRoleUtils from "../utils/userRole";
 
-function isUndergraduate(userId?: string | null) {
-  if (!userId) return false;
-  const email = userId.toLowerCase();
-  // Common RUH engineering UG domains seen in the project: contain 'engug' or 'engug.ruh'
-  // Adjust the heuristic if your auth system provides an explicit role.
-  return (
-    /engug(\.|@)|@.*engug/.test(email) ||
-    email.includes("@engug") ||
-    email.includes("engug.ruh")
-  );
-}
+// Use central userRole utility to decide endpoint routing (undergraduate vs others)
+const isUndergraduate = (userId?: string | null) => userRoleUtils.isUndergraduate(userId as any);
 
 export async function uploadVoice(opts: UploadVoiceOptions) {
   const { blob, sessionId, userId, backendBase, onProgress } = opts;
