@@ -70,3 +70,20 @@ export interface AuthFormProps {
   theme?: "light" | "dark" | string;
   onSwitchToLogin?: () => void;
 }
+
+export interface AuthPageProps {
+  onAuthSuccess: (userSession: any) => void;
+  theme?: "light" | "dark" | string;
+}
+
+export interface OTPPopupProps {
+  open: boolean;
+  email: string;
+  timer: number;
+  otp: string;
+  error?: string;
+  onChange: (otp: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onClose: () => void;
+  onResend?: () => void;
+}
