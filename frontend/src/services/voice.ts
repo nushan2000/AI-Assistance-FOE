@@ -1,12 +1,6 @@
 import userRoleUtils from "../utils/userRole";
-
-export type UploadVoiceOptions = {
-  blob: Blob;
-  sessionId: string;
-  userId?: string | null;
-  backendBase?: string;
-  onProgress?: (percent: number) => void;
-};
+import { UploadVoiceOptions } from "../utils/types";
+import { Guidance_Base_URL } from "../App";
 
 const isUndergraduate = (userId?: string | null) =>
   userRoleUtils.isUndergraduate(userId as any);
@@ -14,21 +8,10 @@ const isUndergraduate = (userId?: string | null) =>
 export async function uploadVoice(opts: UploadVoiceOptions) {
   const { blob, sessionId, userId, onProgress } = opts;
 
-  let appGuidanceBase: string | undefined = undefined;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const appMod = require("../App") as any;
-    appGuidanceBase = appMod && appMod.Guidance_Base_URL;
-  } catch (e) {
-    appGuidanceBase = undefined;
-  }
-
-  const base = (appGuidanceBase || "http://localhost:9000").replace(/\/$/, "");
-
   const endpoint = isUndergraduate(userId)
     ? "/ruh/chat/voice"
     : "/ugc/chat/voice";
-  const url = `${base}${endpoint}`;
+  const url = `${Guidance_Base_URL}${endpoint}`;
 
   const form = new FormData();
   const ext = blob.type.includes("ogg")

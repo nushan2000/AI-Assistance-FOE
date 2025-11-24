@@ -1,10 +1,16 @@
-// Utility to fetch user email from profile API
+import { Auth_Base_URL, Guidance_Base_URL } from "../App";
+import {
+  ChatMessage,
+  ChatResponse,
+  ChatSessionsResponse,
+} from "../utils/types";
+
 import { getAccessToken } from "./authAPI";
 export async function fetchUserEmailFromProfile(): Promise<string | null> {
   const token = getAccessToken();
   if (!token) return null;
   try {
-    const response = await fetch("http://localhost:5000/auth/me", {
+    const response = await fetch(`${Auth_Base_URL}/auth/me`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -21,7 +27,6 @@ export async function fetchUserEmailFromProfile(): Promise<string | null> {
   }
 }
 
-// Helper to update access token from response headers (if present)
 function updateAccessTokenFromResponse(response: Response) {
   const newToken = response.headers.get("x-access-token");
   if (newToken) {
@@ -29,8 +34,6 @@ function updateAccessTokenFromResponse(response: Response) {
   }
 }
 
-// Centralized handler for auth errors. If the backend returns 401 or 403
-// dispatch a global event so the app can react (show login, clear state).
 function handleAuthError(response: Response) {
   if (response.status === 401 || response.status === 403) {
     try {
@@ -45,7 +48,6 @@ function handleAuthError(response: Response) {
       });
       window.dispatchEvent(ev);
     } catch (e) {
-      // older browsers may not support CustomEvent constructor in some contexts
       const event = document.createEvent("CustomEvent");
       event.initCustomEvent("auth:logout", true, true, {
         status: response.status,
@@ -55,45 +57,7 @@ function handleAuthError(response: Response) {
   }
 }
 
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface ChatRequest {
-  message: string;
-  session_id?: string;
-  user_id?: string;
-}
-
-export interface ChatResponse {
-  response: string;
-  conversation_history: ChatMessage[];
-  session_id: string;
-}
-
-export interface FeedbackRequest {
-  session_id: string;
-  message_index: number;
-  feedback_type: "like" | "dislike";
-  user_id?: string;
-}
-
-export interface ChatSession {
-  session_id: string;
-  topic: string;
-  message_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ChatSessionsResponse {
-  sessions: ChatSession[];
-  total_count: number;
-}
-
 class ApiService {
-  // Example: include user email in chat requests automatically
   async sendMessage(
     message: string,
     sessionId: string = "default",
@@ -110,7 +74,7 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/ruh/chat`, {
+      const response = await fetch(`${Guidance_Base_URL}/ruh/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +127,7 @@ class ApiService {
     userId?: string
   ): Promise<{ session_id: string; topic?: string }> {
     try {
-      const response = await fetch(`${this.baseUrl}/chat/session`, {
+      const response = await fetch(`${Guidance_Base_URL}/chat/session`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -182,15 +146,6 @@ class ApiService {
       throw error;
     }
   }
-  private baseUrl: string;
-
-  constructor() {
-    // Prefer `REACT_APP_API_BASE` (used elsewhere) but fall back to older name or localhost
-    this.baseUrl =
-      (process.env.REACT_APP_API_BASE as string) ||
-      (process.env.REACT_APP_API_URL as string) ||
-      "http://localhost:9000";
-  }
 
   // Send feedback for a message
   async sendFeedback(
@@ -200,7 +155,7 @@ class ApiService {
     userId?: string
   ): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/feedback`, {
+      const response = await fetch(`${Guidance_Base_URL}/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -254,7 +209,7 @@ class ApiService {
     userId?: string
   ): Promise<{ conversation_history: ChatMessage[]; session_id: string }> {
     try {
-      const url = new URL(`${this.baseUrl}/chat/${sessionId}/history`);
+      const url = new URL(`${Guidance_Base_URL}/chat/${sessionId}/history`);
       if (userId) {
         url.searchParams.append("user_id", userId);
       }
@@ -276,14 +231,13 @@ class ApiService {
     }
   }
 
-  // Health check
   async healthCheck(): Promise<{
     status: string;
     message: string;
     active_sessions: number;
   }> {
     try {
-      const response = await fetch(`${this.baseUrl}/health`, {
+      const response = await fetch(`${Guidance_Base_URL}/health`, {
         headers: {
           Authorization: `Bearer ${getAccessToken()}`,
         },
@@ -303,7 +257,7 @@ class ApiService {
   // Get all chat sessions
   async getChatSessions(userId?: string): Promise<ChatSessionsResponse> {
     try {
-      const url = new URL(`${this.baseUrl}/chat/sessions`);
+      const url = new URL(`${Guidance_Base_URL}/chat/sessions`);
       if (userId) {
         url.searchParams.append("user_id", userId);
       }
@@ -325,14 +279,12 @@ class ApiService {
     }
   }
 
-  // Route the latest persisted user message for a session through the agent
-  // (Used for voice uploads that already saved the transcript)
   async routeLatest(
     sessionId: string = "default",
     userId?: string
   ): Promise<ChatResponse> {
     try {
-      const url = new URL(`${this.baseUrl}/chat/route`);
+      const url = new URL(`${Guidance_Base_URL}/chat/route`);
       if (sessionId) url.searchParams.append("session_id", sessionId);
       if (userId) url.searchParams.append("user_id", userId);
 
