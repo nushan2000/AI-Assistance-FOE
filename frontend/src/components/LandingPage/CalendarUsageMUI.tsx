@@ -30,14 +30,20 @@ interface CalendarUsageMUIProps {
   oneMonthOnly?: boolean;
 }
 
-const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = false }) => {
+const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({
+  oneMonthOnly = false,
+}) => {
   const [month, setMonth] = useState<Dayjs>(dayjs().startOf("month"));
   const [usageByMonth, setUsageByMonth] = useState<{
     [key: string]: UsageMap;
   }>({});
   const [loading, setLoading] = useState(true);
   const [showTwo, setShowTwo] = useState<boolean>(() =>
-    oneMonthOnly ? false : typeof window !== "undefined" ? window.innerWidth >= 1000 : false
+    oneMonthOnly
+      ? false
+      : typeof window !== "undefined"
+      ? window.innerWidth >= 1000
+      : false
   );
 
   useEffect(() => {
@@ -108,8 +114,12 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
   if (showTwo) {
     const prevUsage = usageFor(month.subtract(1, "month"));
     const combinedKeys = new Set<string>();
-    Object.keys(prevUsage || {}).forEach((k) => prevUsage[k] && combinedKeys.add(k));
-    Object.keys(currentUsage || {}).forEach((k) => currentUsage[k] && combinedKeys.add(k));
+    Object.keys(prevUsage || {}).forEach(
+      (k) => prevUsage[k] && combinedKeys.add(k)
+    );
+    Object.keys(currentUsage || {}).forEach(
+      (k) => currentUsage[k] && combinedKeys.add(k)
+    );
     loggedCount = combinedKeys.size;
   }
   // find last login across fetched months (current and next if present)
@@ -122,9 +132,9 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
   const lastLoginRaw = allKeys.length ? allKeys.sort().slice(-1)[0] : null;
   const lastLogin = lastLoginRaw
     ? // show date + time if time info available, otherwise date only
-      (lastLoginRaw.length > 10
-        ? dayjs(lastLoginRaw).format("D MMM YYYY, h:mm A")
-        : dayjs(lastLoginRaw).format("D MMM YYYY"))
+      lastLoginRaw.length > 10
+      ? dayjs(lastLoginRaw).format("D MMM YYYY, h:mm A")
+      : dayjs(lastLoginRaw).format("D MMM YYYY")
     : null;
 
   const renderSingleCalendar = (m: Dayjs) => {
@@ -211,13 +221,17 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
         </IconButton>
         <Typography
           variant="h6"
-          sx={{ flex: 1, textAlign: "center", fontSize: { xs: '1rem', md: '1.125rem' } }}
+          sx={{
+            flex: 1,
+            textAlign: "center",
+            fontSize: { xs: "1rem", md: "1.125rem" },
+          }}
         >
           {showTwo
-            ? `${month.subtract(1, "month").format("MMMM YYYY")} — ${month.format(
-                    "MMMM YYYY"
-                  )}`
-                : month.format("MMMM YYYY")}
+            ? `${month
+                .subtract(1, "month")
+                .format("MMMM YYYY")} — ${month.format("MMMM YYYY")}`
+            : month.format("MMMM YYYY")}
         </Typography>
         <IconButton
           aria-label="next"
@@ -229,8 +243,16 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
       </Box>
 
       {/* Header badges above the calendar to summarize login activity */}
-      <Box sx={{ display: "flex", gap: 2, mb: 0.6, alignItems: "center", justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 0.6,
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           {/* Active days: use outlined style (swapped) */}
           <Chip
             label={`Active days: ${loggedCount}`}
@@ -240,10 +262,10 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
           />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           {/* Last login: use same outlined brown style as Active days */}
           <Chip
-            label={lastLogin ? `Last login: ${lastLogin}` : 'Last login: —'}
+            label={lastLogin ? `Last login: ${lastLogin}` : "Last login: —"}
             size="small"
             variant="outlined"
             sx={{ borderColor: brown, color: brown, fontWeight: 700 }}
@@ -251,7 +273,7 @@ const CalendarUsageMUI: React.FC<CalendarUsageMUIProps> = ({ oneMonthOnly = fals
         </Box>
       </Box>
 
-        {/* sparkline removed per request */}
+      {/* sparkline removed per request */}
 
       <Paper
         elevation={0}

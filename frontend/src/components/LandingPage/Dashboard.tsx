@@ -80,25 +80,29 @@ const Dashboard: React.FC<DashboardProps> = () => {
         <div className="dashboard-banner-inner">
           <div className="dashboard-banner-overlay">
             <Greeting />
-            <div style={{ height: 8 }} />
+
             <div style={{ marginLeft: 32 }} />
           </div>
         </div>
       </div>
-      <div className="dashboard-top-cards">
+      <div className="dashboard-top-cards" style={{ display: "flex", boxSizing: "border-box", padding: 12 }}>
         <div
           style={{
             display: "flex",
-            gap: 1,
+            gap: 16,
             alignItems: "flex-start",
             width: "100%",
+            boxSizing: "border-box",
           }}
         >
           <div style={{ flex: 2 }}>
             <QuickAccessCard agents={agents} />
           </div>
           <div style={{ flex: 1 }}>
-            <div className="usage-card-wrapper">
+            <div
+              className="usage-card-wrapper"
+              style={{ display: "flex", flexDirection: "column", gap: 12 }}
+            >
               <Card
                 elevation={2}
                 sx={{
@@ -163,35 +167,46 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                     primary={s.topic || "Untitled conversation"}
                                     secondary={
                                       s.updated_at
-                                        ? dayjs(s.updated_at).format("D MMM, h:mm A")
+                                        ? dayjs(s.updated_at).format(
+                                            "D MMM, h:mm A"
+                                          )
                                         : undefined
                                     }
                                     secondaryTypographyProps={{
                                       variant: "caption",
-                                      sx: { fontSize: "0.65rem", color: "text.secondary" },
+                                      sx: {
+                                        fontSize: "0.65rem",
+                                        color: "text.secondary",
+                                      },
                                     }}
                                   />
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
                                     {s.message_count > 0 && (
                                       <Badge
                                         badgeContent={s.message_count}
                                         sx={{
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          '& .MuiBadge-badge': {
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          "& .MuiBadge-badge": {
                                             marginLeft: 0,
-                                            fontSize: '0.65rem',
+                                            fontSize: "0.65rem",
                                             minWidth: 18,
                                             height: 18,
                                             borderRadius: 9,
-                                            backgroundColor: '#8B5E3C',
-                                            color: '#fff',
+                                            backgroundColor: "#8B5E3C",
+                                            color: "#fff",
                                           },
                                         }}
                                       >
                                         <MailOutlineIcon
                                           fontSize="small"
-                                          sx={{ color: '#8B5E3C' }}
+                                          sx={{ color: "#8B5E3C" }}
                                         />
                                       </Badge>
                                     )}

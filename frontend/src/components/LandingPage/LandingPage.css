@@ -49,13 +49,13 @@
 /* Dashboard banner styles */
 .dashboard-banner {
   position: relative;
-  width: calc(100% - 5rem);
-  height: 140px;
-  margin: 1rem 2.5rem;
-  border-radius: 12px;
+  width: calc(100%);
+  height: 100px;
+  margin: 0 0 0.2rem 0;
+  /* border-radius: 0 0 12px 12px; */
   overflow: hidden;
   /* refined left/right/bottom shadows for a professional lift */
-  box-shadow: 0 10px 20px rgba(12, 22, 29, 0.2),
+  box-shadow: 0 5px 5px rgba(12, 22, 29, 0.1),
     -10px 0 28px rgba(12, 22, 29, 0.06), 10px 0 28px rgba(12, 22, 29, 0.06);
   background-color: #fff;
 }
@@ -246,7 +246,7 @@
   display: flex;
   gap: 0.1rem; /* slightly tighter gap between Quick Access and Usage */
   align-items: flex-start; /* align both children to top */
-  margin-top: 1.5rem;
+  /* margin-top: 1.5rem; */
   padding-right: 1.25rem; /* add a little breathing room from the right edge */
 }
 .quick-access-wrapper {
