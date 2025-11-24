@@ -1,4 +1,4 @@
-import { SignupPayload, VerifyOtpResponse } from "../utils/authInterfaces";
+import { SignupPayload, VerifyOtpResponse } from "../utils/types";
 import { Auth_Base_URL } from "../App";
 
 // Login API

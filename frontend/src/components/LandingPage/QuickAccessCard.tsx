@@ -3,10 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Card, CardContent, Typography, Box } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useNavigate } from "react-router-dom";
-
-interface QuickAccessCardProps {
-  agents?: { id: string; name?: string }[];
-}
+import { QuickAccessCardProps } from "../../utils/types";
 
 const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
   const navigate = useNavigate();

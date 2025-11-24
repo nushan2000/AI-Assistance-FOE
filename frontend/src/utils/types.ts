@@ -165,3 +165,55 @@ export interface VoiceRecorderProps {
   showUploading?: boolean;
   onRecordingChange?: (isRecording: boolean) => void;
 }
+
+export interface HomePageProps {
+  onAuthSuccess: () => void;
+}
+
+export interface QuickAccessCardProps {
+  agents?: { id: string; name?: string }[];
+}
+
+export interface LandingPageProps {
+  userProfile?: any;
+  agents?: any[];
+  onLogout?: () => void;
+}
+
+export type UsageMap = { [date: string]: boolean };
+
+export interface UserProfileProps {
+  userProfile: any;
+}
+
+export interface MainLayoutProps {
+  userProfile?: any;
+  agents?: any[];
+  onLogout?: () => void;
+}
+
+export interface SignupPayload {
+  email: string;
+  password: string;
+  firstname?: string;
+  lastname?: string;
+  role: string;
+  department: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  role?: string;
+  name?: string;
+  department?: string;
+}
+
+export interface QuickAction {
+  id: string;
+  name: string;
+  description: string;
+  link: string;
+  image: string;
+  agent: string; // e.g. 'guidance', 'booking', etc.
+  visible?: boolean;
+}

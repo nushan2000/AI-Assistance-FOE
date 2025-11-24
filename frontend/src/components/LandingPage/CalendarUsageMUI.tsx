@@ -9,8 +9,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useTheme } from "@mui/material/styles";
 import { getMonthlyLoginDates } from "../../services/usageAPI";
-
-type UsageMap = { [date: string]: boolean };
+import { UsageMap } from "../../utils/types";
 
 const makeCalendarGrid = (month: Dayjs) => {
   const start = month.startOf("month").startOf("week");
