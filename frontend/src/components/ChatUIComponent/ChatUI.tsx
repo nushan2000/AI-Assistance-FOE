@@ -1,28 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-
-export interface Message {
-  role: "user" | "assistant";
-  content: string | JSX.Element;
-  recommendations?: any[];
-  showRecommendations?: boolean;
-}
-
-interface ChatUIProps {
-  messages: Message[];
-  inputValue: string;
-  setInputValue: (val: string) => void;
-  isLoading: boolean;
-  error: string;
-  onSend: () => void;
-  onClear: () => void;
-  onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  formatMessage?: (text: string) => string;
-  agentName?: string; // Optional prop for agent name
-  onAppendMessages?: (
-    msgs: { role: "user" | "assistant"; content: string }[]
-  ) => void; // optional handler to append messages from popup
-}
+import { ChatUIProps } from "../../utils/types";
 
 const ChatUI: React.FC<ChatUIProps> = ({
   messages,

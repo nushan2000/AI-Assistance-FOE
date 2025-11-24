@@ -123,3 +123,26 @@ export type SwapRequest = {
   message: string;
   isSender: boolean;
 };
+
+export interface MessageChatUI {
+  role: "user" | "assistant";
+  content: string | JSX.Element;
+  recommendations?: any[];
+  showRecommendations?: boolean;
+}
+
+export interface ChatUIProps {
+  messages: MessageChatUI[];
+  inputValue: string;
+  setInputValue: (val: string) => void;
+  isLoading: boolean;
+  error: string;
+  onSend: () => void;
+  onClear: () => void;
+  onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  formatMessage?: (text: string) => string;
+  agentName?: string; // Optional prop for agent name
+  onAppendMessages?: (
+    msgs: { role: "user" | "assistant"; content: string }[]
+  ) => void; // optional handler to append messages from popup
+}
