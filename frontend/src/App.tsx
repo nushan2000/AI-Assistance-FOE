@@ -59,7 +59,7 @@ const App: React.FC = () => {
         return;
       }
       try {
-        const response = await fetch("http://localhost:5000/auth/me", {
+        const response = await fetch(`${Auth_Base_URL}/auth/me`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -140,16 +140,13 @@ const App: React.FC = () => {
                   const authToken = localStorage.getItem("auth_token");
                   if (!authToken) return;
                   try {
-                    const response = await fetch(
-                      "http://localhost:5000/auth/me",
-                      {
-                        method: "GET",
-                        headers: {
-                          Authorization: `Bearer ${authToken}`,
-                          "Content-Type": "application/json",
-                        },
-                      }
-                    );
+                    const response = await fetch(`${Auth_Base_URL}/auth/me`, {
+                      method: "GET",
+                      headers: {
+                        Authorization: `Bearer ${authToken}`,
+                        "Content-Type": "application/json",
+                      },
+                    });
                     const newToken = response.headers.get("x-access-token");
                     if (newToken) {
                       localStorage.setItem("auth_token", newToken);
