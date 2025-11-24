@@ -41,7 +41,6 @@ const LoaderOnRouteChange: React.FC = () => {
 export const Guidance_Base_URL = process.env.REACT_APP_API_BASE_GUIDANCE;
 export const Auth_Base_URL = process.env.REACT_APP_API_BASE_AUTH;
 export const Booking_Base_URL = process.env.REACT_APP_API_BOOKING;
-export const Frontend_URL = process.env.FRONTEND_URL;
 
 const App: React.FC = () => {
   const [authChecked, setAuthChecked] = useState(false);
