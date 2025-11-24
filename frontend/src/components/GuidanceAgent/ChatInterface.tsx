@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -136,6 +135,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const formatMessage = (content: string): JSX.Element => {
     // Split content into paragraphs
     const paragraphs = content.split("\n\n").filter((p) => p.trim() !== "");
+
     return (
       <div className="formatted-message">
         {paragraphs.map((paragraph, index) => {
@@ -343,36 +343,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading || !currentUser) return;
-    await sendText(inputValue.trim());
-  };
 
-  // Shared send logic for text (used by keyboard send and by voice transcription)
-  // Shared send logic for text (used by keyboard send and by voice transcription)
-  // options: skipLocal -> don't add the user message to UI (used when UI already has a placeholder)
-  // force -> bypass current isLoading guard (used when upload already set loading)
-  const sendText = async (
-    text: string,
-    options?: { skipLocal?: boolean; force?: boolean }
-  ) => {
-    const skipLocal = options?.skipLocal || false;
-    const force = options?.force || false;
-    if (!text || (!force && isLoading) || !currentUser) return;
-    const userMessage = text;
-    // Clear input field if this was typed
-    setInputValue((prev) => (prev === text ? "" : prev));
+    const userMessage = inputValue.trim();
+    setInputValue("");
     setIsLoading(true);
     setError(null);
 
-    // Add user message to UI immediately unless caller provided a placeholder
-    if (!skipLocal) {
-      const newUserMessage: ChatMessage = {
-        role: "user",
-        content: userMessage,
-      };
-      setMessages((prev) => [...prev, newUserMessage]);
-    }
+    // Add user message to UI immediately
+    const newUserMessage: ChatMessage = { role: "user", content: userMessage };
+    setMessages((prev) => [...prev, newUserMessage]);
+
+    // Debugging: log userId and sessionId before sending
 
     try {
+      // Build guidance_filter to send to backend. If 'all' is selected or nothing selected, send 'all'.
       const guidanceToSend =
         !guidanceFilters ||
         guidanceFilters.length === 0 ||
@@ -380,6 +364,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           ? "all"
           : guidanceFilters.join(",");
 
+      // Augment message sent to backend with a human-readable directive when a restricted source is selected.
       let outgoingMessage = userMessage;
       if (guidanceToSend !== "all") {
         const readable = guidanceFilters
@@ -412,10 +397,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         }
       })();
       loadChatSessions();
+      // Reset guidance filters to initial state after successful send
       setGuidanceFilters(["all"]);
     } catch (error) {
       setError("Failed to send message. Please try again.");
-      if (!options?.skipLocal) setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -674,21 +660,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 )}
                 <div className="message-content">
                   <div className="message-text">
-                    {message.role === "assistant" ? (
-                      formatMessage(message.content)
-                    ) : // If this is the pending voice upload bubble, show a small loading spinner there as well
-                    index === pendingVoiceIndexRef.current ? (
-                      <span className="pending-voice">
-                        <span className="pending-spinner" aria-hidden="true">
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                        </span>
-                        {/* <span style={{ marginLeft: 8 }}>Sending voice...</span> */}
-                      </span>
-                    ) : (
-                      message.content
-                    )}
+                    {message.role === "assistant"
+                      ? formatMessage(message.content)
+                      : message.content}
                   </div>
                 </div>
                 {message.role === "user" && (
