@@ -5,6 +5,8 @@ import {
   ChatSessionsResponse,
 } from "../utils/types";
 
+import userRoleUtils from "../utils/userRole";
+
 import { getAccessToken } from "./authAPI";
 export async function fetchUserEmailFromProfile(): Promise<string | null> {
   const token = getAccessToken();
@@ -74,7 +76,10 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${Guidance_Base_URL}/ruh/chat`, {
+      const prefix = userRoleUtils.isUndergraduate(userEmail as any)
+        ? "ruh"
+        : "ugc";
+      const response = await fetch(`${Guidance_Base_URL}/${prefix}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,14 +132,21 @@ class ApiService {
     userId?: string
   ): Promise<{ session_id: string; topic?: string }> {
     try {
-      const response = await fetch(`${Guidance_Base_URL}/chat/session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
+      const resolvedUser = userId || (await fetchUserEmailFromProfile());
+      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
+        ? "ruh"
+        : "ugc";
+      const response = await fetch(
+        `${Guidance_Base_URL}/${prefix}/chat/session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+          body: JSON.stringify({ user_id: resolvedUser }),
+        }
+      );
       updateAccessTokenFromResponse(response);
       handleAuthError(response);
       if (!response.ok) {
@@ -209,9 +221,15 @@ class ApiService {
     userId?: string
   ): Promise<{ conversation_history: ChatMessage[]; session_id: string }> {
     try {
-      const url = new URL(`${Guidance_Base_URL}/chat/${sessionId}/history`);
-      if (userId) {
-        url.searchParams.append("user_id", userId);
+      const resolvedUser = userId || (await fetchUserEmailFromProfile());
+      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
+        ? "ruh"
+        : "ugc";
+      const url = new URL(
+        `${Guidance_Base_URL}/${prefix}/chat/${sessionId}/history`
+      );
+      if (resolvedUser) {
+        url.searchParams.append("user_id", resolvedUser);
       }
 
       const response = await fetch(url.toString(), {
@@ -257,9 +275,13 @@ class ApiService {
   // Get all chat sessions
   async getChatSessions(userId?: string): Promise<ChatSessionsResponse> {
     try {
-      const url = new URL(`${Guidance_Base_URL}/chat/sessions`);
-      if (userId) {
-        url.searchParams.append("user_id", userId);
+      const resolvedUser = userId || (await fetchUserEmailFromProfile());
+      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
+        ? "ruh"
+        : "ugc";
+      const url = new URL(`${Guidance_Base_URL}/${prefix}/chat/sessions`);
+      if (resolvedUser) {
+        url.searchParams.append("user_id", resolvedUser);
       }
 
       const response = await fetch(url.toString(), {
@@ -284,9 +306,13 @@ class ApiService {
     userId?: string
   ): Promise<ChatResponse> {
     try {
-      const url = new URL(`${Guidance_Base_URL}/chat/route`);
+      const resolvedUser = userId || (await fetchUserEmailFromProfile());
+      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
+        ? "ruh"
+        : "ugc";
+      const url = new URL(`${Guidance_Base_URL}/${prefix}/chat/route`);
       if (sessionId) url.searchParams.append("session_id", sessionId);
-      if (userId) url.searchParams.append("user_id", userId);
+      if (resolvedUser) url.searchParams.append("user_id", resolvedUser);
 
       const response = await fetch(url.toString(), {
         method: "POST",

@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  apiService,
-  ChatMessage,
-  ChatSession,
-  fetchUserEmailFromProfile,
-} from "../../services/api";
+import { apiService, fetchUserEmailFromProfile } from "../../services/api";
+import { ChatMessage, ChatSession } from "../../utils/types";
 import "./ChatInterface.css";
 import { useTheme } from "../../context/ThemeContext";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
