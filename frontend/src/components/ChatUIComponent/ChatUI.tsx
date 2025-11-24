@@ -26,9 +26,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
     <div className={`chat-container${theme === "dark" ? " dark-theme" : ""}`}>
       <div className="chat-messages">
         {messages.length === 0 && (
-          <div className="welcome-message">
-            Welcome! I'm your {agentName}. How can I assist you today?
-          </div>
+            <div className="welcome-message">
+              Welcome! I'm your {agentName}.
+            </div>
         )}
         {messages.map((message, index) => (
           <div key={index} className={`message ${message.role}`}>

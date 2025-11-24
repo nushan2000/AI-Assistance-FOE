@@ -23,6 +23,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   return (
     <div className="dashboard-section">
+      <div className="dashboard-banner" role="banner">
+        <img
+          src="/dashboard_banner.png"
+          alt="Dashboard banner"
+          className="dashboard-banner-image"
+        />
+        <div className="dashboard-banner-inner">
+          <div className="dashboard-banner-overlay">
+            <Greeting />
+            <div style={{ height: 8 }} />
+            <div style={{ marginLeft: 32 }} />
+          </div>
+        </div>
+      </div>
       <div className="dashboard-top-cards">
         <div
           style={{
@@ -33,8 +47,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
           }}
         >
           <div style={{ flex: 2 }}>
-            <Greeting />
-            <div style={{ height: 12 }} />
             <QuickAccessCard agents={agents} />
           </div>
           <div style={{ flex: 1 }}>
@@ -75,7 +87,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           </div>
         </div>
       </div>
-      <GuidanceAnalysisCard
+      {/* <GuidanceAnalysisCard
         timesCalled={1234}
         dailyUsage={[12, 15, 9, 20, 18, 14, 10]}
         monthlyUsage={[120, 98, 110, 130, 125, 140]}
@@ -141,7 +153,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           },
         ]}
         calendarRefreshKey={0}
-      />
+      /> */}
     </div>
   );
 };

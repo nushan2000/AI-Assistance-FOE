@@ -577,7 +577,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="chat-messages">
           {messages.length === 0 && (
             <div className="welcome-message">
-              Welcome! I'm your Guidance Agent. How can I assist you today?
+              Welcome! I'm your Guidance Agent.
             </div>
           )}
 
