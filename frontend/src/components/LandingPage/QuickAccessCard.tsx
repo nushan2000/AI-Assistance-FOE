@@ -4,6 +4,7 @@ import { Card, CardContent, Typography, Box } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useNavigate } from "react-router-dom";
 import { QuickAccessCardProps } from "../../utils/types";
+import CalendarUsageMUI from "./CalendarUsageMUI";
 
 const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
   const navigate = useNavigate();
@@ -275,17 +276,60 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ agents }) => {
               <Box
                 sx={{
                   display: "flex",
-                  flexDirection: "row",
+                  flexDirection: { xs: "column", md: "row" },
                   gap: 2,
-                  justifyContent: "center",
+                  justifyContent: "space-between",
                   alignItems: "stretch",
                 }}
               >
                 {agentsList.map((agent) => (
-                  <Box key={agent.id} sx={{ flex: 1, display: "flex" }}>
+                  <Box
+                    key={agent.id}
+                    sx={{
+                      flex: { xs: "1 1 100%", md: "1 1 0" },
+                      display: "flex",
+                      minWidth: 0,
+                    }}
+                  >
                     {renderAgentCard(agent)}
                   </Box>
                 ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Recent Guidance Chats (last 5) */}
+        <Grid size={{ xs: 12 }}>
+          <Card
+            elevation={4}
+            sx={{
+              borderRadius: 5,
+              p: 2,
+              background: isDark ? "#2c3440" : "#f5f8fa",
+              width: "100%",
+            }}
+          >
+            <CardContent
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                overflow: "hidden",
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  color: isDark ? "#eaf3ff" : "#1a2332",
+                }}
+              >
+                Usage
+              </Typography>
+              <Box sx={{ flex: 1, overflowY: "auto", py: 0.5 }}>
+                <CalendarUsageMUI />
               </Box>
             </CardContent>
           </Card>
