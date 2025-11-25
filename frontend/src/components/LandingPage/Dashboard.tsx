@@ -85,7 +85,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
           </div>
         </div>
       </div>
-      <div className="dashboard-top-cards" style={{ display: "flex", boxSizing: "border-box", padding: 12 }}>
+      <div
+        className="dashboard-top-cards"
+        style={{ display: "flex", boxSizing: "border-box", padding: 12 }}
+      >
         <div
           style={{
             display: "flex",

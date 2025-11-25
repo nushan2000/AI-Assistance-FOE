@@ -50,22 +50,16 @@ const Greeting: React.FC = () => {
     <Box sx={{ display: "flex", flexDirection: "column" }}>
       <Typography
         className="banner-hello"
-        sx={{
-          fontSize: "2rem",
-          letterSpacing: "-0.02em",
-          fontWeight: 700,
-          color: isDark ? "#eaf3ff" : "#13202b",
-        }}
+        sx={{ color: isDark ? "#cfe8ff" : "#1a2332" }}
       >
-        {"Hello"}
-        {name ? `, ${name}` : ""}!
+        {`Hi${name ? ` ${name}` : ""}, ${greeting}`}
       </Typography>
       <Typography
         className="banner-greeting"
         variant="h6"
         sx={{ fontWeight: 500, color: isDark ? "#cfe8ff" : "#465a6a", mt: 0.5 }}
       >
-        {greeting}
+        How can I assist you today?
       </Typography>
     </Box>
   );
