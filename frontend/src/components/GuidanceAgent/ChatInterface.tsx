@@ -10,7 +10,8 @@ import MicIcon from "@mui/icons-material/Mic";
 // import IconButton from "@mui/material/IconButton";
 import VoiceChatPopupImpl from "./GuidanceVoicePopup";
 import { ChatInterfaceProps } from "../../utils/types";
-import { SOURCE_OPTIONS } from "../../utils/CONSTANTS";
+import { SOURCE_OPTIONS, SOURCE_OPTIONS_LECTURER } from "../../utils/CONSTANTS";
+import userRoleUtils from "../../utils/userRole";
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   sessionId = "default",
@@ -33,6 +34,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
   const [inputValue, setInputValue] = useState("");
   const [guidanceFilters, setGuidanceFilters] = useState<string[]>(["all"]);
+  const [availableSources, setAvailableSources] = useState(SOURCE_OPTIONS);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -60,6 +62,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     fetchUser();
     setUserSpecificSessionId(sessionId);
   }, [sessionId, navigate]);
+
+  // Configure source chips and default selection based on user role
+  useEffect(() => {
+    if (!currentUser) return;
+    const email = currentUser?.email as string | undefined;
+    if (userRoleUtils.isUndergraduate(email)) {
+      setAvailableSources(SOURCE_OPTIONS);
+      setGuidanceFilters(["all"]);
+    } else {
+      // non-students see both sets and start with no selection
+      setAvailableSources([...SOURCE_OPTIONS, ...SOURCE_OPTIONS_LECTURER]);
+      setGuidanceFilters([]);
+    }
+  }, [currentUser]);
 
   const loadChatHistory = useCallback(async () => {
     if (!currentUser) return;
@@ -328,12 +344,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
 
     try {
-      const guidanceToSend =
-        !guidanceFilters ||
-        guidanceFilters.length === 0 ||
-        guidanceFilters.includes("all")
-          ? "all"
-          : guidanceFilters.join(",");
+      let guidanceToSend: string | undefined;
+      const isUndergrad = userRoleUtils.isUndergraduate(
+        currentUser?.email as any
+      );
+      if (isUndergrad) {
+        guidanceToSend =
+          !guidanceFilters ||
+          guidanceFilters.length === 0 ||
+          guidanceFilters.includes("all")
+            ? "all"
+            : guidanceFilters.join(",");
+      } else {
+        // Non-undergrads: if nothing selected, omit guidance_filter so backend
+        // receives no restriction. If selections exist, join them.
+        guidanceToSend =
+          guidanceFilters && guidanceFilters.length > 0
+            ? guidanceFilters.join(",")
+            : undefined;
+      }
 
       let outgoingMessage = userMessage;
       if (guidanceToSend !== "all") {
@@ -369,7 +398,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         })();
       }
       loadChatSessions();
-      setGuidanceFilters(["all"]);
+      // Reset selection to sensible default based on role
+      if (userRoleUtils.isUndergraduate(currentUser?.email as any)) {
+        setGuidanceFilters(["all"]);
+      } else {
+        setGuidanceFilters([]);
+      }
     } catch (error) {
       setError("Failed to send message. Please try again.");
       if (!options?.skipLocal) setMessages((prev) => prev.slice(0, -1));
@@ -398,7 +432,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setPrev.add(key);
       }
       const arr = Array.from(setPrev);
-      return arr.length === 0 ? ["all"] : arr;
+      // For undergraduates, if nothing is selected fallback to 'all'.
+      // For non-undergrads allow an empty selection (no guidance filter sent).
+      if (arr.length === 0) {
+        if (userRoleUtils.isUndergraduate(currentUser?.email as any))
+          return ["all"];
+        return [];
+      }
+      return arr;
     });
   };
 
@@ -716,10 +757,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               role="toolbar"
               aria-label="Guidance source filters"
             >
-              {SOURCE_OPTIONS.map((opt) => {
-                const selected =
-                  guidanceFilters.includes(opt.key) ||
-                  (opt.key === "all" && guidanceFilters.length === 0);
+              {availableSources.map((opt) => {
+                const selected = guidanceFilters.includes(opt.key);
                 return (
                   <button
                     key={opt.key}
