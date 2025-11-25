@@ -3,7 +3,7 @@ name: Deploy Frontend to Local Network VPS
 on:
   push:
     branches:
-      - main
+      - Feature-17
 
 jobs:
   deploy:
