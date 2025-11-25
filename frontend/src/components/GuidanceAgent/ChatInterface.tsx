@@ -49,6 +49,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const pendingVoiceIndexRef = useRef<number | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const isUndergrad = userRoleUtils.isUndergraduate(currentUser?.email as any);
 
   useEffect(() => {
     async function fetchUser() {
@@ -319,7 +320,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading || !currentUser) return;
+    if (!currentUser) return;
+    if (!inputValue.trim() || isLoading) return;
+    // Non-undergraduates must select at least one guidance source (chit)
+    if (!isUndergrad && (!guidanceFilters || guidanceFilters.length === 0)) {
+      setError("Please select at least one guidance source before sending.");
+      return;
+    }
     await sendText(inputValue.trim());
   };
 
@@ -330,6 +337,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const skipLocal = options?.skipLocal || false;
     const force = options?.force || false;
     if (!text || (!force && isLoading) || !currentUser) return;
+    // Enforce chit selection for non-undergraduates unless forced.
+    const isUG = userRoleUtils.isUndergraduate(currentUser?.email as any);
+    if (!isUG && (!guidanceFilters || guidanceFilters.length === 0) && !force) {
+      setError("Please select at least one guidance source before sending.");
+      return;
+    }
     const userMessage = text;
     setInputValue((prev) => (prev === text ? "" : prev));
     setIsLoading(true);
@@ -422,6 +435,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const toggleFilter = (key: string) => {
     if (key === "all") {
       setGuidanceFilters(["all"]);
+      // if input is empty, add a polite hint for the user
+      if (!inputValue || inputValue.trim().length === 0) {
+        setInputValue("Please go through only the selected documents.");
+      }
       return;
     }
     setGuidanceFilters((prev) => {
@@ -441,6 +458,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }
       return arr;
     });
+
+    // If the input is empty, populate it with a short, polite hint referencing the clicked source
+    try {
+      if (!inputValue || inputValue.trim().length === 0) {
+        const opt = availableSources.find((o) => o.key === key);
+        const label = opt?.label || key;
+        setInputValue(`Please go through only the ${label}.`);
+      }
+    } catch (e) {
+      // defensive: ignore any issues when computing hint
+    }
   };
 
   const handleFeedback = async (
@@ -785,7 +813,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <div className="input-buttons">
               <button
                 onClick={sendMessage}
-                disabled={isLoading || !inputValue.trim()}
+                disabled={
+                  isLoading ||
+                  !inputValue.trim() ||
+                  (!isUndergrad &&
+                    (!guidanceFilters || guidanceFilters.length === 0))
+                }
                 className="input-btn send-btn"
                 title="Send message"
               >
@@ -803,8 +836,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </button>
 
               <button
-                onClick={() => setVoicePopupVisible(true)}
-                disabled={isLoading || !currentUser}
+                onClick={() => {
+                  // Prevent opening voice popup if non-undergrad and no chips selected
+                  if (
+                    !isUndergrad &&
+                    (!guidanceFilters || guidanceFilters.length === 0)
+                  ) {
+                    setError(
+                      "Please select at least one guidance source before using voice input."
+                    );
+                    return;
+                  }
+                  setVoicePopupVisible(true);
+                }}
+                disabled={
+                  isLoading ||
+                  !currentUser ||
+                  (!isUndergrad &&
+                    (!guidanceFilters || guidanceFilters.length === 0))
+                }
                 className="input-btn mic-btn"
                 title="Voice input"
                 aria-label="Open voice input"
