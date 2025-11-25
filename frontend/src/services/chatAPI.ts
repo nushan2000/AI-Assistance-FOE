@@ -77,8 +77,8 @@ class ApiService {
 
     try {
       const prefix = userRoleUtils.isUndergraduate(userEmail as any)
-        ? "ruh"
-        : "ugc";
+        ? "ugc"
+        : "ruh";
       const response = await fetch(`${Guidance_Base_URL}/${prefix}/chat`, {
         method: "POST",
         headers: {
@@ -133,20 +133,14 @@ class ApiService {
   ): Promise<{ session_id: string; topic?: string }> {
     try {
       const resolvedUser = userId || (await fetchUserEmailFromProfile());
-      const prefix = userRoleUtils.isUndergraduate(resolvedUser as any)
-        ? "ruh"
-        : "ugc";
-      const response = await fetch(
-        `${Guidance_Base_URL}/${prefix}/chat/session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-          body: JSON.stringify({ user_id: resolvedUser }),
-        }
-      );
+      const response = await fetch(`${Guidance_Base_URL}/chat/session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+        body: JSON.stringify({ user_id: resolvedUser }),
+      });
       updateAccessTokenFromResponse(response);
       handleAuthError(response);
       if (!response.ok) {
