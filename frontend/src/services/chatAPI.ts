@@ -77,8 +77,8 @@ class ApiService {
 
     try {
       const prefix = userRoleUtils.isUndergraduate(userEmail as any)
-        ? "ugc"
-        : "ruh";
+        ? "ruh"
+        : "ugc";
       const response = await fetch(`${Guidance_Base_URL}/${prefix}/chat`, {
         method: "POST",
         headers: {

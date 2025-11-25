@@ -358,13 +358,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         content: response.response,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-      (async () => {
-        try {
-          await playAssistantMedia(response);
-        } catch (e) {
-          console.warn("assistant playback error", e);
-        }
-      })();
+      // Only play assistant audio/TTS if the voice popup is currently open
+      if (voicePopupVisible) {
+        (async () => {
+          try {
+            await playAssistantMedia(response);
+          } catch (e) {
+            console.warn("assistant playback error", e);
+          }
+        })();
+      }
       loadChatSessions();
       setGuidanceFilters(["all"]);
     } catch (error) {
@@ -472,39 +475,42 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         return next;
       });
       // Play assistant audio / TTS and show talking.gif while speaking
-      (async () => {
-        try {
-          setIsPlayingAudio(true);
-          // try audio_url
-          if (resp?.audio_url) {
-            const audio = new Audio(resp.audio_url);
-            await audio.play();
-          } else if (resp?.audio_base64) {
-            const bstr = atob(resp.audio_base64);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) u8arr[n] = bstr.charCodeAt(n);
-            const blob = new Blob([u8arr], { type: "audio/mpeg" });
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            await audio.play();
-            URL.revokeObjectURL(url);
-          } else if (resp?.response || resp?.assistant_text || resp?.text) {
-            const t = resp?.response || resp?.assistant_text || resp?.text;
-            if (window.speechSynthesis) {
-              await new Promise<void>((resolve) => {
-                const ut = new SpeechSynthesisUtterance(t);
-                ut.onend = () => resolve();
-                window.speechSynthesis.speak(ut);
-              });
+      // Only play assistant audio/TTS if guidance voice popup is open
+      if (voicePopupVisible) {
+        (async () => {
+          try {
+            setIsPlayingAudio(true);
+            // try audio_url
+            if (resp?.audio_url) {
+              const audio = new Audio(resp.audio_url);
+              await audio.play();
+            } else if (resp?.audio_base64) {
+              const bstr = atob(resp.audio_base64);
+              let n = bstr.length;
+              const u8arr = new Uint8Array(n);
+              while (n--) u8arr[n] = bstr.charCodeAt(n);
+              const blob = new Blob([u8arr], { type: "audio/mpeg" });
+              const url = URL.createObjectURL(blob);
+              const audio = new Audio(url);
+              await audio.play();
+              URL.revokeObjectURL(url);
+            } else if (resp?.response || resp?.assistant_text || resp?.text) {
+              const t = resp?.response || resp?.assistant_text || resp?.text;
+              if (window.speechSynthesis) {
+                await new Promise<void>((resolve) => {
+                  const ut = new SpeechSynthesisUtterance(t);
+                  ut.onend = () => resolve();
+                  window.speechSynthesis.speak(ut);
+                });
+              }
             }
+          } catch (e) {
+            console.warn("play assistant audio failed", e);
+          } finally {
+            setIsPlayingAudio(false);
           }
-        } catch (e) {
-          console.warn("play assistant audio failed", e);
-        } finally {
-          setIsPlayingAudio(false);
-        }
-      })();
+        })();
+      }
       // clear pending marker and loading
       pendingVoiceIndexRef.current = null;
       setVoiceUploading(false);
@@ -544,10 +550,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           };
           setMessages((prev) => [...prev, assistantMessage]);
           // Speak the assistant response from routed voice
-          try {
-            await playAssistantMedia(resp);
-          } catch (e) {
-            console.warn("assistant playback error (routed)", e);
+          // Only play routed assistant audio/TTS if guidance voice popup is open
+          if (voicePopupVisible) {
+            try {
+              await playAssistantMedia(resp);
+            } catch (e) {
+              console.warn("assistant playback error (routed)", e);
+            }
           }
           loadChatSessions();
         } catch (e) {
